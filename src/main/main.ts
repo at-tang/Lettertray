@@ -38,6 +38,7 @@ ipcMain.handle('create-new-rule', async (_event, ar: AutomationRequest) => {
     newDirectory: ar.newDirectory,
     keyword: ar.keyword,
     automationActive: ar.automationActive,
+    viewKeyword: ar.viewKeyword
   };
 
   const arr = (store.get('rules') as typeof newRule[] | undefined) ?? [];

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import TextButton from "../../Components/TextButton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SetFilePath from "../../Components/SetFilePath";
 import SetRegex from "../../Components/SetRegex";
 import SubmitRuleButton from "../../Components/SubmitRule";
@@ -11,14 +11,22 @@ export default function CreateNewRule() {
     const [oldDir, setOldDir] = useState("");
     const [newDir, setNewDir] = useState("");
     const [regex, setRegex] = useState("");
-    const [query, setQuery] = useState("");
+
+    const [viewKeyword, setViewKeyword] = useState("");
+
+    useEffect(() => {console.log(oldDir)}, [oldDir])
+    useEffect(() => {console.log(newDir)}, [newDir])
+    useEffect(() => {console.log(regex)}, [regex])
+    useEffect(() => {console.log("View Keyword: " + viewKeyword)}, [viewKeyword])
+
     return (
         <div className="h-dvh w-dvw flex items-center justify-center">
             
 
             <div className="p-4 rounded-2xl bg-surface-container w-full m-4">
 
-                <TextButton clickFunction={() => {navigate("/")}} text="Return!"/>
+                <TextButton clickFunction={() => {navigate("/")}} text="Return"/>
+                <div className="mb-4"/>
 
                 <h1 className="text-5xl font-serif mb-2">Create New Rule</h1>
                 <hr className="w-16 h-[1px] bg-primary mb-4"/>
@@ -27,9 +35,9 @@ export default function CreateNewRule() {
                 <div className="mb-4"/>
                 <SetFilePath value={newDir} setValue={setNewDir}/>
 
-                <SetRegex value={regex} setValue={setRegex}/>
+                <SetRegex value={regex} setValue={setRegex} value2={viewKeyword} setValue2={setViewKeyword}/>
 
-                <SubmitRuleButton oldDir={oldDir} newDir={newDir} regex={regex}/>
+                <SubmitRuleButton oldDir={oldDir} newDir={newDir} regex={regex} viewKeyword={viewKeyword}/>
 
             </div>
         </div>

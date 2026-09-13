@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 import TextButton from './Components/TextButton';
 import CreateNewRule from './pages/CreateRule/CreateNewRule';
 
+import { Rule } from '../main/api/types';
+import RuleList from './Components/RuleView/RuleList';
+
 
 function Hello() {
 
@@ -47,7 +50,10 @@ function Hello() {
       <h1>Test!</h1>
       <TextButton clickFunction={() => {navigate("/create")}} text="Testing!"/>
 
-        <TextButton text="Clear All Rules" clickFunction={async () => {await window.electron.clearAllRules()}}/>
+      <TextButton text="Clear All Rules" clickFunction={async () => {await window.electron.clearAllRules()}}/>
+
+      <RuleList rules={rules}/>
+
 
 
       </div>

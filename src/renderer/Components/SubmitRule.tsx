@@ -3,11 +3,12 @@ import { AutomationRequest } from "../../main/api/types";
 import TextButton from "./TextButton"
 
 export default function SubmitRuleButton(
-    {oldDir, newDir, regex}:
+    {oldDir, newDir, regex, viewKeyword}:
     {
         oldDir: string,
         newDir: string,
-        regex: string
+        regex: string,
+        viewKeyword: string
     }
 
 ) {
@@ -16,7 +17,7 @@ export default function SubmitRuleButton(
 
     const submitRule = async () => {
 
-        let newRule:AutomationRequest = new AutomationRequest ("My Rule!", "MOVE", oldDir, newDir, regex);
+        let newRule:AutomationRequest = new AutomationRequest ("My Rule!", "MOVE", oldDir, newDir, regex, viewKeyword);
         await window.electron.createNewRule(newRule);
         navigate("/");
     }
