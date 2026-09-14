@@ -16,16 +16,52 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import type { AutomationRequest, Rule } from './api/types';
+import { Edge } from '@xyflow/react';
+import { handleFlowgraphEdgeDelete } from './ipcMainhandleFunctions/flowgraph/handleFlowgraphEdgeDelete';
+import { handleFlowgraphNodeDelete } from './ipcMainhandleFunctions/flowgraph/handleFlowgraphNodeDelete';
 
 // For watching folders and automatically filtering
 let watcher: { add: (paths: string | string[]) => unknown } | null = null;
+
+ipcMain.handle('flowgraph-on-edge-delete', async (_event, edges: Edge[]) => {
+  handleFlowgraphEdgeDelete(edges);
+})
+
+ipcMain.handle('flowgraph-on-node-delete', async (_event, nodes: Node[]) => {
+  handleFlowgraphNodeDelete(nodes);
+
+})
+
+ipcMain.handle('get-flowgraph', async () => {
+  const { default: Store } = await import('electron-store');
+  const store = new Store();
+
+  if (!store.has("flowgraph")) return {nodes: [], edges: []};
+  const result = await store.get("flowgraph")
+  return result;
+})
+
+ipcMain.handle('save-flowgraph', async (_event, flowgraph) => {
+  const { default: Store } = await import('electron-store');
+  const store = new Store();
+  
+  try {
+    store.set("flowgraph", flowgraph);
+  } catch (err) {
+    console.error(err);
+  }
+})
+
 
 ipcMain.handle('get-rules', async () => {
   const { default: Store } = await import('electron-store');
   const store = new Store();
 
-  return store.get("rules") || [];
+  if(!store.has("rules")) return [];
+
+  return store.get("rules");
 })
+
 
 ipcMain.handle('create-new-rule', async (_event, ar: AutomationRequest) => {
   const { default: Store } = await import('electron-store');
@@ -47,12 +83,19 @@ ipcMain.handle('create-new-rule', async (_event, ar: AutomationRequest) => {
   watcher?.add(newRule.originDirectory);
 })
 
-ipcMain.handle('read-testing-file', () => {
-  return fs.readFileSync(
-    '/Users/aidantang/Downloads/TestingForApp/untitled.txt',
-    'utf8',
-  );
-});
+
+ipcMain.handle('delete-rule', async (_event, index: number) => {
+  const { default: Store } = await import('electron-store');
+  const store = new Store();
+
+  const rules: Array<Rule> = await store.get("rules") || [];
+  if (rules.length < 1) return;
+  const newRules = rules.filter((_, i) => i !== index);
+  store.set("rules", newRules);
+  startWatching();
+  return
+
+})
 
 
 ipcMain.handle('move-file', async () => {
@@ -82,6 +125,7 @@ ipcMain.handle('clear-all-rules', async () => {
   const store = new Store();
   
   store.delete("rules");
+  store.delete("flowgraph");
 })
 
 
@@ -93,11 +137,11 @@ ipcMain.handle('dialog:openDirectory', async () => {
   if (result.canceled) {
     return null;
   } else {
-    return result.filePaths[0]; // This is the absolute path string
+    return result.filePaths[0]; // Absolute path string
   }
 });
 
-const handleNewFileAdded = async (filePath: string) => {
+const handleNewFileAdded = async (filePath: string) => { // Automatically activated when watcher becomes active
   const dirPath = path.dirname(filePath);
   const fileName = path.basename(filePath);
 
@@ -131,6 +175,7 @@ class AppUpdater {
 // Watching :====================================
 
 const startWatching = async () => {
+  console.log("Beginning watch")
   const [{ default: Store }, { watch }] = await Promise.all([
     import('electron-store'),
     import('chokidar'),
@@ -138,6 +183,12 @@ const startWatching = async () => {
   const store = new Store();
   const rules = (store.get('rules') as Rule[] | undefined) ?? [];
   const watchedFolders = [...new Set(rules.map((rule) => rule.originDirectory))];
+
+  console.log("Watching these folders: " + watchedFolders);
+
+  if (watcher) {
+    await watcher.close();
+  }
 
   const fileWatcher = watch(watchedFolders, {
     persistent: true,
@@ -170,22 +221,11 @@ if (isDebug) {
   require('electron-debug').default();
 }
 
-const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload,
-    )
-    .catch(console.log);
-};
-
 const createWindow = async () => {
-  if (isDebug) {
-    await installExtensions();
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show();
+    mainWindow.focus();
+    return;
   }
 
   const RESOURCES_PATH = app.isPackaged
@@ -263,48 +303,48 @@ app
     startWatching().catch(console.error); // Watches files
 
     // Tray 
+    
     tray = new Tray('assets/icons/24x24.png')
     const contextMenu = Menu.buildFromTemplate([
 
       {label: "Show / Hide App", type: "normal", click: () => {
-        console.log("Quit App button was pressed!")
-        if (app.dock.isVisible()) {
-           console.log("Hide app")
-          mainWindow?.close();
-          app.dock.hide();   
-          contextMenu.items[0].label = "Show";
+        if (!mainWindow || mainWindow.isDestroyed()) {
+          createWindow();
+          return;
+        }
 
-
+        if (mainWindow.isVisible()) {
+          mainWindow.hide();
+          app.dock.hide();
         } else {
-           console.log("Show app")
           app.show();
           app.dock.show();
-          mainWindow?.show();  
-          mainWindow?.focus();
-          createWindow();
-          mainWindow?.setResizable(false);
-     
+          mainWindow.show();
+          mainWindow.focus();
         }
       }},
 
+      {label: "Quit", type: "normal", click: () => {
+        app.quit();
+      }}
+
     ])
 
+    tray.setToolTip("Lettertray")
+    tray.setContextMenu(contextMenu);
 
-    mainWindow?.setResizable(false);
-    app.dock.hide();
-    //createWindow();
-    /*
+    
+    
+    createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
-    */
+    
 
 
 
-    tray.setToolTip("Lettertray")
-    tray.setContextMenu(contextMenu);
 
   })
   .catch(console.log);

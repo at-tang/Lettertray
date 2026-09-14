@@ -1,4 +1,6 @@
+@import '@xyflow/react/dist/style.css' layer(base);
 @import "tailwindcss";
+
 
 @theme {
     --color-surface: #111318;

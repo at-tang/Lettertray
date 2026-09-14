@@ -7,6 +7,7 @@ import CreateNewRule from './pages/CreateRule/CreateNewRule';
 
 import { Rule } from '../main/api/types';
 import RuleList from './Components/RuleView/RuleList';
+import Flowgraph from './pages/Flowgraph/Flowgraph';
 
 
 function Hello() {
@@ -39,20 +40,18 @@ function Hello() {
 
   useEffect(() => {console.log(rules)}, [rules])
 
-  
+  //      <RuleList rules={rules} setRules={setRules}/>
   return (
     <div className="p-4">
-      <h1 className=" text-4xl">{test}</h1>
-      <button className="bg-gray-500 rounded-2xl text-white hover:cursor-pointer hover:brightness-75 px-8 py-2" onClick={() => {settingTest()}}>
-        Test
-      </button>
 
-      <h1>Test!</h1>
-      <TextButton clickFunction={() => {navigate("/create")}} text="Testing!"/>
+      <TextButton clickFunction={() => {navigate("/create")}} text="Add Rule"/>
+        <TextButton clickFunction={() => {navigate("/flowgraph")}} text="Flowgraph"/>
 
       <TextButton text="Clear All Rules" clickFunction={async () => {await window.electron.clearAllRules()}}/>
 
-      <RuleList rules={rules}/>
+        <RuleList rules={rules} setRules={setRules}/>
+
+
 
 
 
@@ -68,6 +67,7 @@ export default function App() {
         
         <Route path="/" element={<Hello />} />
         <Route path="/create" element={<CreateNewRule/>}/>
+        <Route path="/flowgraph" element={<Flowgraph/>}/>
       </Routes>
     </Router>
   );

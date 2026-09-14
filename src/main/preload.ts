@@ -2,15 +2,30 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { AutomationRequest } from './api/types';
+import { Edge } from '@xyflow/react';
 
 export type Channels = 'ipc-example';
 
 const electronHandler = {
-  readTestingFile() {
-    return ipcRenderer.invoke('read-testing-file');
-  },
+
   moveTestingFile() {
     return ipcRenderer.invoke('move-file');
+  },
+
+  loadFlowgraph() {
+    return ipcRenderer.invoke('get-flowgraph')
+  },
+
+  saveFlowgraph(flowgraph) {
+    return ipcRenderer.invoke('save-flowgraph', flowgraph)
+  },
+
+  handleFlowgraphEdgeDelete(edges: Edge[]) {
+    return ipcRenderer.invoke('flowgraph-on-edge-delete', edges)
+  },
+
+  handleFlowgraphNodeDelete(nodes: Node[]) {
+    return ipcRenderer.invoke('flowgraph-on-node-delete', nodes);
   },
 
   selectFolder() {
@@ -24,7 +39,12 @@ const electronHandler = {
   getRules() {
     return ipcRenderer.invoke('get-rules')
   },
+  
+  deleteRule(index: number) {
+    return ipcRenderer.invoke("delete-rule", index)
 
+  },
+  
   clearAllRules() {
     return ipcRenderer.invoke('clear-all-rules')
   },

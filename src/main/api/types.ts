@@ -31,3 +31,36 @@ export interface Rule {
     viewKeyword: string
 
 }
+
+export class Position {
+    x: number;
+    y: number;
+
+    public constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+export class Data {
+    label: string;
+
+    public constructor(label: string) {
+        this.label = label;
+
+    }
+
+}
+
+export class AutomatorNode {
+    id: string;
+    data: Data;
+    position: Position;
+
+    public constructor(id: string, data: Data, position: Position) {
+        this.id = id;
+        this.data = data;
+        this.position = position;
+    }
+    
+}

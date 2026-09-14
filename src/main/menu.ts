@@ -54,7 +54,7 @@ export default class MenuBuilder {
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
-      label: 'Electron',
+      label: 'Lettertray',
       submenu: [
         {
           label: 'About ElectronReact',
@@ -151,6 +151,7 @@ export default class MenuBuilder {
         { label: 'Bring All to Front', selector: 'arrangeInFront:' },
       ],
     };
+    /*
     const subMenuHelp: MenuItemConstructorOptions = {
       label: 'Help',
       submenu: [
@@ -182,6 +183,7 @@ export default class MenuBuilder {
         },
       ],
     };
+    */
 
     const subMenuView =
       process.env.NODE_ENV === 'development' ||
@@ -189,7 +191,7 @@ export default class MenuBuilder {
         ? subMenuViewDev
         : subMenuViewProd;
 
-    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
+    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow];
   }
 
   buildDefaultTemplate() {
