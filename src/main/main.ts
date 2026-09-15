@@ -29,7 +29,40 @@ ipcMain.handle('flowgraph-on-edge-delete', async (_event, edges: Edge[]) => {
 
 ipcMain.handle('flowgraph-on-node-delete', async (_event, nodes: Node[]) => {
   handleFlowgraphNodeDelete(nodes);
+})
 
+ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, newPath: string) => {
+  const { default: Store } = await import('electron-store');
+  const store = new Store();
+  const rules: Rule[] = await store.get("rules") || [];
+  let newRules = [...rules]
+
+  // Check that new folder is not already part of the flowgraph
+  // If it is, return false, ending the program early and denying any altercation
+  // In the future, there may be an option to SWAP directories
+  for (const rule of rules) {
+    if (rule.originDirectory === newPath || rule.newDirectory === newPath || oldPath === newPath) {
+      return false;
+    }
+
+  }
+
+  for (const rule of newRules) {
+    if (rule.originDirectory === oldPath) {
+      rule.originDirectory = newPath;
+    }
+
+    if (rule.newDirectory === oldPath) {
+      rule.newDirectory = newPath;
+    }
+  }
+
+  await store.set("rules", newRules)
+
+  startWatching();
+
+  return true;
+ 
 })
 
 ipcMain.handle('get-flowgraph', async () => {

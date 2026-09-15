@@ -28,6 +28,10 @@ const electronHandler = {
     return ipcRenderer.invoke('flowgraph-on-node-delete', nodes);
   },
 
+  handleNodeChangeData(oldPath: string, newPath: string) {
+    return ipcRenderer.invoke('flowgraph-node-change-data', oldPath, newPath)
+  },
+
   selectFolder() {
     return ipcRenderer.invoke('dialog:openDirectory')
   },

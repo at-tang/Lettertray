@@ -19,12 +19,12 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data }: {id
  
   return (
     <>
-      <BaseEdge id={id} path={edgePath} color="#f6339a" className=""/>
+      <BaseEdge id={id} path={edgePath} color="#f6339a" className="stroke-green-500! stroke-3!"/>
 
       
       
-      <circle r="6" fill="#ff0073" className="bg-primary">
-        <animateMotion dur="2s" repeatCount="indefinite" path={edgePath}  />
+      <circle r="6"  className="stroke-green-500!">
+        <animateMotion dur="2.5s" repeatCount="indefinite" path={edgePath} begin={1} />
       </circle>
 
       <EdgeLabelRenderer>

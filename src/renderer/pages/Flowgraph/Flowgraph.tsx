@@ -17,30 +17,28 @@ export default function Flowgraph() {
 
     type FlowNode = Node<{value: string; label: string}>;
 
-    const [nodes, setNodes] = useState<FlowNode[]>([
+    const [nodes, setNodes] = useState<FlowNode[]>([]);
+    const [edges, setEdges] = useState<Edge[]>([]);
 
-    ]
-    );
+    const nodeTypes = { customNode: CustomNode }
+    const edgeTypes = { customEdge: CustomEdge }
 
     const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-    const [edges, setEdges] = useState<Edge[]>([]);
 
+    // Every change to the nodes/edges of the flowgraph will update the saved flowgraph in storage
     useEffect(() => {
         const saveFlowgraph = async () => {
-            const flowgraph = {
-                nodes: nodes,
-                edges: edges
+            const flowgraph = {nodes: nodes, edges: edges
             }
-
-            if (initialLoadDone) {
-                await window.electron.saveFlowgraph(flowgraph); 
-            } 
+            if (initialLoadDone) await window.electron.saveFlowgraph(flowgraph); 
         }
         saveFlowgraph();
 
     }, [nodes, edges])
 
+
+    // Retrieves all the user's data from storage to construct the flowgraph
     useEffect(() => {
         const loadFlowgraph = async () => {
             const flowgraph = await window.electron.loadFlowgraph();
@@ -53,16 +51,10 @@ export default function Flowgraph() {
 
     }, [])
 
-    const nodeTypes = {
-        customNode: CustomNode
-    }
 
-    const edgeTypes = {
-        customEdge: CustomEdge
-    }
 
+    // Updates the state arrays nodes/edges whenever a change is detected
     const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), [], )
-
     const onEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)), [], );
 
     const onEdgesDelete = async (edges: Edge[]) => {
@@ -119,12 +111,15 @@ export default function Flowgraph() {
                 onConnect={onConnect}
                 colorMode="dark" 
                 fitView
+
+                minZoom={0.2}
+                maxZoom={3}
                 >
 
                     
 
-                    <Controls/>
-                    <Background className="bg-black" />
+                    <Controls className="stroke-on-surface! bg-surface-container!"/>
+                    <Background className="bg-surface!" />
                     <Panel position="top-left">
                         <TopLeftPanel nodes={nodes} setNodes={setNodes}/>
                     </Panel>
