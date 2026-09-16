@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import TextButton from "../../Components/TextButton";
-import { addEdge, applyEdgeChanges, applyNodeChanges, Background, Connection, Controls, Edge, EdgeChange, Node, NodeChange, Panel, ReactFlow } from "@xyflow/react";
-import { useCallback, useEffect, useState } from "react";
+import { addEdge, applyEdgeChanges, applyNodeChanges, Background, Connection, Controls, Edge, EdgeChange, Node, NodeChange, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { AutomationRequest, AutomatorNode, Data, Position } from "../../../main/api/types";
 import '@xyflow/react/dist/style.css';
 import TopLeftPanel from "./Components/TopLeftPanel";
@@ -10,6 +10,7 @@ import AddRulePopup from "./Components/AddRulePopup";
 import { CustomEdge } from "./Custom/CustomEdge";
 import CustomNode from "./Custom/CustomNode";
 
+export const FlowgraphContext = createContext();
 export default function Flowgraph() {
     const navigate = useNavigate();
 
@@ -25,17 +26,55 @@ export default function Flowgraph() {
 
     const [initialLoadDone, setInitialLoadDone] = useState(false);
 
+    const [dragging, setDragging] = useState(false); // Is the user currently dragging a node?
+    const [connecting, setConnecting] = useState(false);
+    
 
+    /*
     // Every change to the nodes/edges of the flowgraph will update the saved flowgraph in storage
+    useEffect(() => {
+
+        // When nodes are updated, make sure the folders each node represents is reflected in the edges as well
+        // This is mainly for swapping folders in place
+        
+        let newEdges: Edge[] = [...edges]
+        for (let i = 0; i < newEdges.length; i++) {
+            newEdges[i].data.value.originDirectory = nodes.find((node) => {return node.id === newEdges[i].source})?.data.value;
+            newEdges[i].data.value.newDirectory = nodes.find((node) => {return node.id === newEdges[i].target})?.data.value;
+        }
+            
+
+        setEdges(newEdges);
+
+        const saveFlowgraph = async () => {
+            const flowgraph = {nodes: nodes, edges: edges
+            }
+            if (initialLoadDone) await window.electron.saveFlowgraph(flowgraph); 
+        }
+
+        saveFlowgraph();
+
+    }, [nodes])
+
+
+    */
+
     useEffect(() => {
         const saveFlowgraph = async () => {
             const flowgraph = {nodes: nodes, edges: edges
             }
             if (initialLoadDone) await window.electron.saveFlowgraph(flowgraph); 
         }
-        saveFlowgraph();
+        saveFlowgraph();      
+    }, [edges])
 
-    }, [nodes, edges])
+
+    const onNodeDragStop = async () => {
+        setDragging(false)
+        window.electron.saveFlowgraph({nodes: nodes, edges: edges});
+    }
+
+    
 
 
     // Retrieves all the user's data from storage to construct the flowgraph
@@ -52,49 +91,60 @@ export default function Flowgraph() {
     }, [])
 
 
-
     // Updates the state arrays nodes/edges whenever a change is detected
     const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), [], )
-    const onEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)), [], );
+    const onEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => {
+        setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot))
+        console.log("Edges: " + edges)
+        window.electron.saveFlowgraph({nodes: nodes, edges: edges})
+    }
+        , [],);
 
+
+    /*
     const onEdgesDelete = async (edges: Edge[]) => {
-        /*
-        When a node is deleted, also delete every Rule that uses the folder it represents 
-        */
+       // When a node is deleted, also delete every Rule that uses the folder it represents 
        await window.electron.handleFlowgraphEdgeDelete(edges);
         
     }
 
     const onNodesDelete = async (nodes: Node[]) => {
+        // When deleting a node, delete every rule where each deleted node is either the origin or destination
         await window.electron.handleFlowgraphNodeDelete(nodes);
     }
+        */
 
 
+    // When establishing new connections (connecting one node to another), open the "Add Rule" popup
     const [oldDir, setOldDir] = useState("");
     const [newDir, setNewDir] = useState("");
     const [currConnection, setCurrConnection] = useState<Connection>();
     const onConnect = useCallback(
         (connection: Connection) => {
+            const originDirectory = nodes.find((node) => {return node.id == connection.source})?.data.value;
+            const newDirectory = nodes.find((node) => {return node.id == connection.target})?.data.value;
+
             setCurrConnection(connection);
-            //setEdges((oldEdges) => addEdge(connection, oldEdges));
-            setOldDir(connection.source);
-            setNewDir(connection.target)
+            setOldDir(originDirectory || "error");
+            setNewDir(newDirectory || "error")
             setAddPopup(true);
 
 
-        }, [setEdges], 
+        }, [nodes], 
     )
+    const proOptions = {hideAttribution: true}
 
-    //<TextButton clickFunction={() => {navigate("/")}} text="Return"/>
+
 
     return (
         <>
+        <FlowgraphContext.Provider value={{dragging, setDragging, connecting, setConnecting}}>
             <Popup value={addPopup} setValue={setAddPopup}>
-                <AddRulePopup oldDir={oldDir} newDir={newDir} connection={currConnection} setEdges={setEdges} setPopupStatus={setAddPopup}/>
+                <AddRulePopup oldDir={oldDir} newDir={newDir} nodes={nodes} edges={edges} connection={currConnection} setEdges={setEdges} setPopupStatus={setAddPopup}/>
             </Popup>
             
 
-            <div className="w-dvw h-dvh bg-white text-black">
+            <main className="w-full h-full bg-white text-black">
 
                 <ReactFlow 
                 nodes={nodes} 
@@ -102,8 +152,14 @@ export default function Flowgraph() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
 
-                onEdgesDelete={onEdgesDelete}
-                onNodesDelete={onNodesDelete}
+                onNodeDragStart={() => setDragging(true)}
+
+                onNodeDragStop={onNodeDragStop}
+
+                onConnectStart={() => setConnecting(true)}
+                onConnectEnd={() => setConnecting(false)}
+
+   
 
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
@@ -112,20 +168,24 @@ export default function Flowgraph() {
                 colorMode="dark" 
                 fitView
 
-                minZoom={0.2}
-                maxZoom={3}
+                minZoom={0.5}
+                maxZoom={1.5}
+
+                
+
+                proOptions={proOptions}
                 >
-
-                    
-
-                    <Controls className="stroke-on-surface! bg-surface-container!"/>
+                    <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border-4! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
                     <Background className="bg-surface!" />
+
                     <Panel position="top-left">
                         <TopLeftPanel nodes={nodes} setNodes={setNodes}/>
                     </Panel>
+
                 </ReactFlow>
 
-            </div>
+            </main>
+        </FlowgraphContext.Provider>
         </>
         
 

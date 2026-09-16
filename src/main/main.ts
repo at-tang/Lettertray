@@ -9,16 +9,19 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { app, BrowserWindow, shell, ipcMain, dialog, Tray, Menu } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import type { AutomationRequest, Rule } from './api/types';
+import type { AutomationRequest, Rule, SavedFlowgraph } from './api/types';
 import { Edge } from '@xyflow/react';
 import { handleFlowgraphEdgeDelete } from './ipcMainhandleFunctions/flowgraph/handleFlowgraphEdgeDelete';
 import { handleFlowgraphNodeDelete } from './ipcMainhandleFunctions/flowgraph/handleFlowgraphNodeDelete';
+import { mainCreateNewRule } from './ipcMainhandleFunctions/rule/createNewRule';
+import { generateId } from './ipcMainhandleFunctions/ruleId/generateId';
+
 
 // For watching folders and automatically filtering
 let watcher: { add: (paths: string | string[]) => unknown } | null = null;
@@ -35,7 +38,9 @@ ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, new
   const { default: Store } = await import('electron-store');
   const store = new Store();
   const rules: Rule[] = await store.get("rules") || [];
+
   let newRules = [...rules]
+
 
   // Check that new folder is not already part of the flowgraph
   // If it is, return false, ending the program early and denying any altercation
@@ -46,6 +51,7 @@ ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, new
     }
 
   }
+
 
   for (const rule of newRules) {
     if (rule.originDirectory === oldPath) {
@@ -58,6 +64,7 @@ ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, new
   }
 
   await store.set("rules", newRules)
+
 
   startWatching();
 
@@ -79,10 +86,11 @@ ipcMain.handle('save-flowgraph', async (_event, flowgraph) => {
   const store = new Store();
   
   try {
-    store.set("flowgraph", flowgraph);
+    await store.set("flowgraph", flowgraph);
   } catch (err) {
     console.error(err);
   }
+  startWatching();
 })
 
 
@@ -96,23 +104,11 @@ ipcMain.handle('get-rules', async () => {
 })
 
 
-ipcMain.handle('create-new-rule', async (_event, ar: AutomationRequest) => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
+ipcMain.handle('create-new-rule', async (_event, r: Rule) => {
+  // Add new rule. The function returns the rule added
+  const newRule = await mainCreateNewRule(r);
 
-  const newRule: Rule = {
-    title: ar.title,
-    type: ar.type,
-    originDirectory: ar.originDirectory,
-    newDirectory: ar.newDirectory,
-    keyword: ar.keyword,
-    automationActive: ar.automationActive,
-    viewKeyword: ar.viewKeyword
-  };
-
-  const arr = (store.get('rules') as typeof newRule[] | undefined) ?? [];
-  let newArr = arr.concat([newRule]);
-  store.set("rules", newArr);
+  // Add the originDirectory of the new rule to the list of files being actively watched
   watcher?.add(newRule.originDirectory);
 })
 
@@ -131,38 +127,23 @@ ipcMain.handle('delete-rule', async (_event, index: number) => {
 })
 
 
-ipcMain.handle('move-file', async () => {
-  console.log("Activated!")
-  const oldDirectory = '/Users/aidantang/Downloads/TestingForApp/folder1'
-  const newDirectory = '/Users/aidantang/Downloads/TestingForApp/folder2' 
-
-
-  try {
-    const dir = await fs.promises.readdir(oldDirectory, { withFileTypes: true });
-
-    for (const file of dir) {
-      const oldFilePath = path.join(oldDirectory, file.name)
-      const newFilePath = path.join(newDirectory, file.name);
-      await fs.promises.rename(oldFilePath, newFilePath);
-
-    }
-
-  } catch (err) {
-    console.error(err);
-  }
-
-})
-
 ipcMain.handle('clear-all-rules', async () => {
   const { default: Store } = await import('electron-store');
   const store = new Store();
   
   store.delete("rules");
   store.delete("flowgraph");
+  startWatching();
 })
 
 
 ipcMain.handle('dialog:openDirectory', async () => {
+  /*
+  Opens the OS menu to select a specific directory.
+  Returns the absolute path as a string if a directory is selected.
+  Returns null if the user cancels the request
+  */
+
   const result = await dialog.showOpenDialog({
     properties: ['openDirectory', 'createDirectory']
   });
@@ -174,28 +155,46 @@ ipcMain.handle('dialog:openDirectory', async () => {
   }
 });
 
-const handleNewFileAdded = async (filePath: string) => { // Automatically activated when watcher becomes active
+const handleNewFileAdded = async (filePath: string, rules: Rule[]) => { // Automatically activated when watcher becomes active
+
+  // Main function handling the moving of files based on the user's sorting parameters
+  // filePath is the current file being addressed
+
   const dirPath = path.dirname(filePath);
   const fileName = path.basename(filePath);
 
+  /*
   const { default: Store } = await import('electron-store');
   const store = new Store();
-  const rules: Array<Rule> = await store.get("rules") || [];
+
+  const flowgraph: SavedFlowgraph = await store.get("flowgraph");
+  const rules: Rule[] = flowgraph.edges.map((edge) => {return edge.data.value}) || [];
+  */
+
 
   for (const rule of rules) { 
-    let fulfilled = false; // Has this file been sorted yet? Only the first rule is applied
-    const regexMatch: boolean = RegExp(rule.keyword).test(fileName)
-    if (regexMatch && rule.originDirectory === dirPath && !fulfilled) {
-
-      fs.rename(filePath, path.join(rule.newDirectory, fileName), () => {console.log("Successful move of " + filePath + " to " + path.join(rule.newDirectory, fileName))})
-      fulfilled = true;
-      return
+    // If statements are layered so that if one if doesnt pass, we don't need to process the rest of the ifs
+    if (rule.automationActive) {
+        if (rule.originDirectory === dirPath) {
+          const regexMatch: boolean = RegExp(rule.keyword).test(fileName)
+          if (regexMatch) {
+            await fs.rename(filePath, path.join(rule.newDirectory, fileName))
+            console.log("Successful move of " + fileName + " to " + rule.newDirectory)
+            return
+          }
+        }
+    }
 
     }
 
-  }
-
 }
+
+
+
+ipcMain.handle('generate-id', async () => {
+  return await generateId();
+})
+
 
 class AppUpdater {
   constructor() {
@@ -207,18 +206,59 @@ class AppUpdater {
 
 // Watching :====================================
 
+interface MoveFilePayload {
+  filepath: String,
+  rules: 
+
+}
+let currentRules;
+
+
 const startWatching = async () => {
   console.log("Beginning watch")
   const [{ default: Store }, { watch }] = await Promise.all([
     import('electron-store'),
     import('chokidar'),
   ]);
+
+  // Store is loaded here, and rules are created from the flowgraph here
+  // instead of handleNewFileAdded, mainly for optimization purposes.
   const store = new Store();
-  const rules = (store.get('rules') as Rule[] | undefined) ?? [];
-  const watchedFolders = [...new Set(rules.map((rule) => rule.originDirectory))];
+  const flowgraph: SavedFlowgraph = await store.get("flowgraph") ?? [];
+  const rules: Rule[] = flowgraph.edges.map((edge) => {return edge.data.value}) || [];
+
+  const rulesMap = new Map(flowgraph.edges.map((edge) => [edge.data.value.originDirectory, edge.data.value]))
+  console.log(rulesMap);
+
+
+  /*
+  for (const edge of flowgraph.edges) {
+    if (!(rulesMap.has(edge.data.value.originDirectory))) {
+      rulesMap.set(edge.data.value.originDirectory, [edge.data.value]);
+    } else {
+      rulesMap.set(edge.data.value.originDirectory, rulesMap.get(edge.data.value).concat([edge.data.value]))
+    }
+  }
+
+  for (const key of rulesMap.keys()) {
+    console.log(`   ${key}`)
+    for (const entry of rulesMap.get(key)) {
+      console.log(`       ${entry}`)
+    }
+
+  }
+  */
+
+
+  let watchedFolders: string[] = [];
+  if (flowgraph.edges.length > 0) {
+    watchedFolders = flowgraph.edges.map((edge) => {return edge.data.value.originDirectory})
+    
+  }
 
   console.log("Watching these folders: " + watchedFolders);
 
+  // Closes the previous watcher so that a new one with updated data can replace it
   if (watcher) {
     await watcher.close();
   }
@@ -229,7 +269,7 @@ const startWatching = async () => {
   });
   watcher = fileWatcher;
 
-  fileWatcher.on('add', (filePath) => handleNewFileAdded(filePath));
+  fileWatcher.on('add', (filePath) => {handleNewFileAdded(filePath, rules)});
 };
 
 // :====================================
@@ -271,12 +311,14 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 1080,
+    height: 600,
+    resizable: false,
     titleBarOverlay: {
       color: '#1d2024'
     },
     icon: getAssetPath('icon.png'),
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
@@ -336,10 +378,11 @@ app
     startWatching().catch(console.error); // Watches files
 
     // Tray 
-    
+  
     tray = new Tray('assets/icons/24x24.png')
     const contextMenu = Menu.buildFromTemplate([
 
+      // Button to Show / Hide the main window
       {label: "Show / Hide App", type: "normal", click: () => {
         if (!mainWindow || mainWindow.isDestroyed()) {
           createWindow();
@@ -356,6 +399,7 @@ app
           mainWindow.focus();
         }
       }},
+
 
       {label: "Quit", type: "normal", click: () => {
         app.quit();

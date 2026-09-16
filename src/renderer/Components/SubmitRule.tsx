@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { AutomationRequest } from "../../main/api/types";
+import { AutomationRequest, Rule } from "../../main/api/types";
 import TextButton from "./TextButton"
 
 export default function SubmitRuleButton(
@@ -9,7 +9,7 @@ export default function SubmitRuleButton(
         newDir: string,
         regex: string,
         viewKeyword: string,
-        callback?: () => any
+        callback?: (rule: Rule) => any
     }
 
 ) {
@@ -18,9 +18,25 @@ export default function SubmitRuleButton(
 
     const submitRule = async () => {
 
-        let newRule:AutomationRequest = new AutomationRequest ("My Rule!", "MOVE", oldDir, newDir, regex, viewKeyword);
-        await window.electron.createNewRule(newRule);
-        callback();
+        // Generate a sequential ID
+        let newId: string = await window.electron.generateId();
+        let newIdNumber: number = (Number) (newId);
+
+        let rule: Rule = {
+            id: newIdNumber,
+            title: "My Rule",
+            type: "MOVE",
+            originDirectory: oldDir,
+            newDirectory: newDir,
+            keyword: regex,
+            automationActive: true,
+            viewKeyword: viewKeyword
+
+        }
+
+        //let newRule:AutomationRequest = new AutomationRequest ("My Rule!", "MOVE", oldDir, newDir, regex, viewKeyword);
+        await window.electron.createNewRule(rule);
+        callback(rule);
 
     }
 

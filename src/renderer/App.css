@@ -9,7 +9,11 @@
     --color-on-surface: #e2e2e9;
 
     --color-primary: #b0c6ff;
-    --color-primary-container: #2f4578;
+    --color-primary-container: #2c91ff;
+    --color-on-primary-container: #00254b;
+
+    --color-outline: #8a919f;
+    --color-outline-b: #404754;
 
 }
 

@@ -14,7 +14,10 @@ export default function SetRegex({value, setValue, value2, setValue2}: {value: s
             setValue(`.+[.]${inputValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
         }
         else if (mode === "NAME") {
-            setValue(`^${inputValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*[.]`)
+            setValue(`^.*${inputValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*[.]`)
+        } 
+        else if (mode === "FOLDER NAME") {
+            setValue(`${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
         }
     }
 
@@ -23,7 +26,10 @@ export default function SetRegex({value, setValue, value2, setValue2}: {value: s
             setValue(`.+[.]${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
         }
         else if (mode === "NAME") {
-            setValue(`^${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*[.]`)
+            setValue(`^.*${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*[.]`)
+        } 
+        else if (mode === "FOLDER NAME") {
+            setValue(`${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
         }
     }, [mode])
 

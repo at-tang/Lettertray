@@ -1,6 +1,6 @@
 {
-  "name": "electron-react-boilerplate",
-  "description": "A foundation for scalable desktop apps",
+  "name": "Lettertray",
+  "description": "An automatic file sorter.",
   "keywords": [
     "electron",
     "boilerplate",

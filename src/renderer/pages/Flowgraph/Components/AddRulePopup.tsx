@@ -1,19 +1,24 @@
-import { addEdge, Connection, Edge } from "@xyflow/react";
+import { addEdge, Connection, Edge, MarkerType, useReactFlow } from "@xyflow/react";
 import SetRegex from "../../../Components/SetRegex";
 import { useEffect, useState } from "react";
 import SubmitRuleButton from "../../../Components/SubmitRule";
+import { Rule } from "../../../../main/api/types";
+import saveNodes from "../Custom/Component/Functions/saveNodes";
 
 export default function AddRulePopup(
-    {oldDir, newDir, connection, setEdges, setPopupStatus}: 
+    {oldDir, newDir, connection, setEdges, setPopupStatus, nodes, edges}: 
     {oldDir: string, 
         newDir: string, 
         connection: Connection, 
         setEdges: React.Dispatch<React.SetStateAction<Edge[]>>, 
-        setPopupStatus: React.Dispatch<React.SetStateAction<boolean>>
+        setPopupStatus: React.Dispatch<React.SetStateAction<boolean>>,
+        nodes: Node[],
+        edges: Edge[]
     }) {
 
     const [keyword, setKeyword] = useState("");
     const [viewKeyword, setViewKeyword] = useState("");
+
 
     useEffect(() => {
         console.log(keyword);
@@ -32,7 +37,7 @@ export default function AddRulePopup(
             newDir={newDir} 
             regex={keyword} 
             viewKeyword={viewKeyword}
-            callback={() => {
+            callback={async (newRule: Rule) => { // Get the rule created by SubmitRule
 
                 const newEdge: Edge = {
                     id: `__${connection.source}~${connection.target}`,
@@ -41,11 +46,16 @@ export default function AddRulePopup(
                     sourceHandle: connection.sourceHandle,
                     targetHandle: connection.targetHandle,
                     type: 'customEdge',
-                    data: {keyword: keyword}
+                    data: {value: newRule},
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                    },
                     
                 }
             
                 setEdges((oldEdges) => addEdge(newEdge, oldEdges)); // Add edge
+                console.log("Edges: " + JSON.stringify(edges))
+
                 setPopupStatus(false); // Close this popup
                 
             }}

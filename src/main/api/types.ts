@@ -1,3 +1,5 @@
+import { Edge } from "@xyflow/react";
+
 export class AutomationRequest {
     title: string;
     type: string;
@@ -14,14 +16,12 @@ export class AutomationRequest {
         this.newDirectory = newDir;
         this.keyword = keyword;
         this.automationActive = true;
-        this.viewKeyword = viewKeyword;
-        
+        this.viewKeyword = viewKeyword;   
     }
-
-
 }
 
 export interface Rule {
+    id: number
     title: string,
     type: string,
     originDirectory: string,
@@ -30,6 +30,11 @@ export interface Rule {
     automationActive: boolean
     viewKeyword: string
 
+}
+
+export interface SavedFlowgraph {
+    nodes: Node[],
+    edges: Edge[]
 }
 
 export class Position {

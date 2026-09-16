@@ -1,16 +1,13 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { AutomationRequest } from './api/types';
+import { AutomationRequest, Rule } from './api/types';
 import { Edge } from '@xyflow/react';
 
 export type Channels = 'ipc-example';
 
 const electronHandler = {
 
-  moveTestingFile() {
-    return ipcRenderer.invoke('move-file');
-  },
 
   loadFlowgraph() {
     return ipcRenderer.invoke('get-flowgraph')
@@ -36,8 +33,8 @@ const electronHandler = {
     return ipcRenderer.invoke('dialog:openDirectory')
   },
 
-  createNewRule(ar: AutomationRequest) {
-    return ipcRenderer.invoke('create-new-rule', ar)
+  createNewRule(r: Rule) {
+    return ipcRenderer.invoke('create-new-rule', r)
   },
 
   getRules() {
@@ -51,6 +48,10 @@ const electronHandler = {
   
   clearAllRules() {
     return ipcRenderer.invoke('clear-all-rules')
+  },
+
+  generateId() {
+    return ipcRenderer.invoke('generate-id')
   },
 
 

@@ -63,12 +63,34 @@ export default function App() {
   return (
     <Router>
 
+      <div>
+
       <Routes>
         
         <Route path="/" element={<Hello />} />
         <Route path="/create" element={<CreateNewRule/>}/>
-        <Route path="/flowgraph" element={<Flowgraph/>}/>
+        <Route path="/flowgraph" element={
+          <div className="h-dvh w-dvw flex flex-col bg-surface-container">
+
+            <header className="w-full bg-surface-container-h h-7 flex items-center justify-center" style={{"appRegion": "drag"}}>
+              <p className="text-sm">Lettertray (Beta Version)</p>
+
+            </header>
+            
+
+            <div className="flex-1 grow bg-primary-container w-full max-h-full">
+              <Flowgraph/>
+
+            </div>
+
+            
+
+          </div>
+          
+          }/>
       </Routes>
+
+      </div>
     </Router>
   );
 }
