@@ -64,6 +64,8 @@ export default function AddRulePopup(
             setType={setType}
             directoriesAllowed={directoriesAllowed}
             setDirectoriesAllowed={setDirectoriesAllowed}
+            originDir={`${oldDir.split(/[/\\]/).at(-1)} `} 
+            newDir={`${newDir.split(/[/\\]/).at(-1)} `} 
             
             
             
@@ -77,12 +79,7 @@ export default function AddRulePopup(
                     {`${oldDir.split(/[/\\]/).at(-1)} `} 
 
                     <b className="text-primary-container">
-                            {(type === "START" ? `starts with ` : 
-                            type === "END" ? `ends with ` : 
-                            type === "CONTAINS" ? `contains ` :
-                            type === "EXTENSION" ? `has extension .` :
-                            `contains `
-                        )}
+
                     </b>
                 "{viewKeyword}", place that file in 
                 <span className="inline items-center ml-2 mr-1"><img src={folderImg} alt="Folder icon" className="invert w-4 h-4 inline"/></span>

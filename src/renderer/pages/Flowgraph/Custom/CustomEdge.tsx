@@ -63,11 +63,11 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
           >
         <div className="flex gap-3 items-center">
         <img src={fileIcon} className="w-8 h-8 invert"/>
-                <div>
-                    {(data.value.type === "START" ? `\"${data.value.viewKeyword}...\"` :
-                      data.value.type === "END" ? `\"...${data.value.viewKeyword}\"` :
-                      data.value.type === "CONTAINS" ? `\"...${data.value.viewKeyword}...\"` :
-                      data.value.type === "EXTENSION" ? `\".${data.value.viewKeyword}\"` :
+                <div className="text-xl">
+                    {(data.value.type === "START" ? `STARTS WITH: \"${data.value.viewKeyword}\"` :
+                      data.value.type === "END" ? `ENDS IN: \"${data.value.viewKeyword}\"` :
+                      data.value.type === "CONTAINS" ? `CONTAINS: \"${data.value.viewKeyword}\"` :
+                      data.value.type === "EXTENSION" ? `.${data.value.viewKeyword}` :
                       "N/A"
                     )}
         

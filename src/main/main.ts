@@ -37,7 +37,10 @@ ipcMain.handle('flowgraph-on-node-delete', async (_event, nodes: Node[]) => {
 ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, newPath: string) => {
   const { default: Store } = await import('electron-store');
   const store = new Store();
-  const rules: Rule[] = await store.get("rules") || [];
+
+  const flowgraph: SavedFlowgraph = await store.get("flowgraph") || [];
+  const rules: Rule[] = [flowgraph.edges.map((edge) => edge.data.value)]
+  console.log(rules)
 
   let newRules = [...rules]
 
@@ -51,7 +54,6 @@ ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, new
     }
 
   }
-
 
   for (const rule of newRules) {
     if (rule.originDirectory === oldPath) {
@@ -155,7 +157,7 @@ ipcMain.handle('dialog:openDirectory', async () => {
   }
 });
 
-const handleNewFileAdded = async (filePath: string, rules: Rule[]) => { // Automatically activated when watcher becomes active
+const handleNewFileAdded = async (filePath: string, rules: Rule[], retries: number = 5, delay: number = 300) => { // Automatically activated when watcher becomes active
 
   // Main function handling the moving of files based on the user's sorting parameters
   // filePath is the current file being addressed
@@ -179,9 +181,41 @@ const handleNewFileAdded = async (filePath: string, rules: Rule[]) => { // Autom
         if (rule.originDirectory === dirPath) {
           const regexMatch: boolean = RegExp(rule.keyword).test(fileName)
           if (regexMatch) {
-            await fs.rename(filePath, path.join(rule.newDirectory, fileName))
-            console.log("Successful move of \'" + fileName + "\' to " + rule.newDirectory + " at " + new Date().toLocaleTimeString())
-            return
+
+            for (let attempts = 1; attempts <= retries; attempts++) {
+
+              // Attempt to move the file
+              try {
+                await fs.rename(filePath, path.join(rule.newDirectory, fileName))
+                console.log("Successful move of \'" + fileName + "\' to " + rule.newDirectory + " at " + new Date().toLocaleTimeString())
+                return
+              } 
+              
+              catch (err) {
+
+                // try an alternative method
+                if (err.code === 'EXDEV' || err.code === 'EBUSY' || err.code === 'EPERM') {
+                  try {
+                    await fs.copyFile(filePath, path.join(rule.newDirectory, fileName))
+                    await fs.unlink(filePath)
+                  }
+                  catch (copyFileErr) {
+                    console.error(copyFileErr)
+                  }
+
+                }
+
+              }
+
+              if (attempts === retries) {
+                throw new Error("Attempts at moving file " + filePath + " exhausted.");
+              }
+
+              await new Promise(resolve => setTimeout(resolve, delay)) // Timer
+
+
+            }
+
           }
         }
     }
@@ -194,6 +228,16 @@ const handleNewFileAdded = async (filePath: string, rules: Rule[]) => { // Autom
 
 ipcMain.handle('generate-id', async () => {
   return await generateId();
+})
+
+ipcMain.handle('open-folder', async (_event, filePath: string) => {
+
+  try {
+    await shell.openPath(filePath);
+  } catch (error) {
+    console.error("An error occured:", error);
+  }
+
 })
 
 
@@ -209,10 +253,50 @@ class AppUpdater {
 
 interface MoveFilePayload {
   filepath: String,
-  rules: 
+  rules: Rule[]
 
 }
-let currentRules;
+
+class FileQueue {
+  /*
+  FileQueue: Maintains a queue of files that have been added to a folder
+  watched by Chokidar. Manages the moving files process, particularly in
+  making sure that the number of concurrent operations is limited, as to not
+  crash the program.
+  */
+  queue: MoveFilePayload[]
+  processing: boolean
+
+  constructor() {
+    this.queue = [];
+    this.processing = false;
+  }
+
+  push(mfp: MoveFilePayload) {
+    this.queue.push(mfp)
+    this.processNext();
+  }
+
+  async processNext() {
+    if (this.processing || this.queue.length === 0) return;
+
+    this.processing = true;
+    const nextMove = this.queue.shift();
+
+    try {
+      await handleNewFileAdded(nextMove?.filepath, nextMove?.rules)
+    }
+    catch (err) {
+      console.error(err)
+    }
+    finally {
+      this.processing = false;
+      setImmediate(() => this.processNext())
+    }
+  }
+}
+
+const fileQueue = new FileQueue();
 
 
 const startWatching = async () => {
@@ -232,25 +316,6 @@ const startWatching = async () => {
   console.log(rulesMap);
 
 
-  /*
-  for (const edge of flowgraph.edges) {
-    if (!(rulesMap.has(edge.data.value.originDirectory))) {
-      rulesMap.set(edge.data.value.originDirectory, [edge.data.value]);
-    } else {
-      rulesMap.set(edge.data.value.originDirectory, rulesMap.get(edge.data.value).concat([edge.data.value]))
-    }
-  }
-
-  for (const key of rulesMap.keys()) {
-    console.log(`   ${key}`)
-    for (const entry of rulesMap.get(key)) {
-      console.log(`       ${entry}`)
-    }
-
-  }
-  */
-
-
   let watchedFolders: string[] = [];
   if (flowgraph.edges.length > 0) {
     watchedFolders = flowgraph.edges.map((edge) => {return edge.data.value.originDirectory})
@@ -267,10 +332,28 @@ const startWatching = async () => {
   const fileWatcher = watch(watchedFolders, {
     persistent: true,
     ignoreInitial: false,
+    awaitWriteFinish: {
+      stabilityThreshold: 1500,
+      pollInterval: 100
+    },
+    depth: 0
   });
   watcher = fileWatcher;
 
-  fileWatcher.on('add', (filePath) => {handleNewFileAdded(filePath, rules)});
+  fileWatcher.on('add', (filePath) => {
+    try {
+
+      // When the move file function checks to see which rules to check,
+      // it will only check rules pertaining the original directory, rather than EVERY rule 
+      let selectRules = rulesMap.get(path.dirname(filePath));
+      let mfp: MoveFilePayload = { filepath: filePath, rules: selectRules}
+      fileQueue.push(mfp) // Push onto the queue
+
+    } catch (err) {
+      console.error("Could not push: " + filePath + " onto the queue.")
+
+    }
+  });
 };
 
 // :====================================
@@ -318,7 +401,7 @@ const createWindow = async () => {
     titleBarOverlay: {
       color: '#1d2024'
     },
-    icon: getAssetPath('icon.png'),
+    icon: getAssetPath('appIcon.png'),
     titleBarStyle: 'hidden',
     webPreferences: {
       preload: app.isPackaged

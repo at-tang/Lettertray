@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { AutomationRequest, Rule } from "../../main/api/types";
 import TextButton from "./TextButton"
+import { useState } from "react";
 
 export default function SubmitRuleButton(
     {oldDir, newDir, regex, viewKeyword, callback = () => {}, directoriesAllowed = false, caseSensitive = false, type}:
@@ -18,6 +19,7 @@ export default function SubmitRuleButton(
 ) {
 
     const navigate = useNavigate();
+    const [errorText, setErrorText] = useState("");
 
     const submitRule = async () => {
 
@@ -47,8 +49,23 @@ export default function SubmitRuleButton(
 
 
     return (
-        <div className="flex justify-center">
-            <TextButton text="Submit" clickFunction={() => {submitRule()}}/>
+        <div className="flex justify-center flex-col gap-2 text-center">
+            <TextButton text="Submit" clickFunction={() => {
+
+                if (viewKeyword.length === 0) {
+                    setErrorText("Please enter a keyword.")
+                    return;
+                }
+
+                else if (viewKeyword.search(/[\\\/\:\*\?\"\<\>\|]/) !== -1) {
+                    setErrorText("Your keyword cannot contain special characters like \/ \\ \: \* \? \" \< \> or \|.")
+                    return;
+                }
+                
+                submitRule()
+                
+                }}/>
+                <p className="text-red-600">{errorText}</p>
           
         </div>
     )

@@ -54,6 +54,10 @@ const electronHandler = {
     return ipcRenderer.invoke('generate-id')
   },
 
+  openFolder(filePath: string) {
+    return ipcRenderer.invoke('open-folder', filePath);
+  },
+
 
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {

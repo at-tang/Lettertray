@@ -121,13 +121,21 @@ export default function Flowgraph() {
     const [currConnection, setCurrConnection] = useState<Connection>();
     const onConnect = useCallback(
         (connection: Connection) => {
-            const originDirectory = nodes.find((node) => {return node.id == connection.source})?.data.value;
-            const newDirectory = nodes.find((node) => {return node.id == connection.target})?.data.value;
 
-            setCurrConnection(connection);
-            setOldDir(originDirectory || "error");
-            setNewDir(newDirectory || "error")
-            setAddPopup(true);
+            // Currently, edges with the same source and connection are not permitted
+            // This may change in the future
+            if (edges.some((edge) => {return edge.source === connection.source && edge.target === connection.target}) === true) {
+                return;
+            } else {
+                const originDirectory = nodes.find((node) => {return node.id == connection.source})?.data.value;
+                const newDirectory = nodes.find((node) => {return node.id == connection.target})?.data.value;
+
+                setCurrConnection(connection);
+                setOldDir(originDirectory || "error");
+                setNewDir(newDirectory || "error")
+                setAddPopup(true);
+            }
+
 
 
         }, [nodes], 
@@ -146,7 +154,8 @@ export default function Flowgraph() {
 
             <main className="w-full h-full bg-white text-black">
 
-                <ReactFlow 
+                <ReactFlow
+                className="font-default!" 
                 nodes={nodes} 
                 edges={edges}
                 onNodesChange={onNodesChange}
@@ -168,7 +177,7 @@ export default function Flowgraph() {
                 colorMode="dark" 
                 fitView
 
-                minZoom={0.5}
+                minZoom={0.4}
                 maxZoom={2}
 
                 

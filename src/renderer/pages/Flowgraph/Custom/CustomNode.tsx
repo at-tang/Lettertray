@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import saveNodes from "./Component/Functions/saveNodes";
 import DeleteNodeButton from "./Component/Node/DeleteNodeButton";
 import { FlowgraphContext } from "../Flowgraph";
+import swapIcon from '../../../../../assets/appIcons/swap.png'
 
 export default function CustomNode({id, data}) {
 
@@ -62,11 +63,17 @@ export default function CustomNode({id, data}) {
             }}
             className="bg-surface-container-h border-outline-b border-4 text-on-surface px-10 py-3 rounded-2xl hover:cursor-move">
                 <div className="flex gap-3 items-center">
-                    <button className="hover:cursor-pointer hover:scale-115 transition ease-in-out" onClick={() => {handleChangeData()}}>
-                        <img src={folderImage} alt="Folder Icon" width={24} height={24} className="invert w-7 h-7"/>
+                    <button className="hover:cursor-pointer hover:scale-115 transition ease-in-out" onClick={async () => {await window.electron.openFolder(data.value)}}>
+                        <img src={folderImage} alt="Open Folder Icon" width={24} height={24} className=" invert w-9 h-9"/>
                     </button>
 
-                    <p className="text-lg">{data.label}</p>
+                    <button className="hover:cursor-pointer hover:scale-115 transition ease-in-out" onClick={() => {handleChangeData()}}>
+                        <img src={swapIcon} alt="Swap" width={24} height={24} className=" w-9 h-9"/>
+                    </button>
+
+
+
+                    <p className="text-xl">{data.label}</p>
 
                     <DeleteNodeButton id={id}/>
                     
@@ -75,7 +82,7 @@ export default function CustomNode({id, data}) {
 
                 
 
-                <Handle type="target" position={Position.Left} className={"w-9! h-9! z-10 bg-primary-container! border-0! hover:scale-120! transition! "} >
+                <Handle type="target" position={Position.Left} isConnectableStart={false}  className={"w-9! h-9! z-10 bg-primary-container! border-0! hover:scale-120! transition! "} >
                     <div className={"w-9! h-9! bg-primary-container! rounded-full! border-0! hover:scale-120! transition! " + (connecting ? " animate-ping! origin-center!  -absolute!  " : " ")}/>
 
                 </Handle>

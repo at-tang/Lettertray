@@ -1,8 +1,9 @@
 import { ChangeEvent, Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextButton from "./TextButton"
+import folderImg from '../../../assets/appIcons/folder.png'
 
 export default function SetRegex(
-    {value, setValue, value2, setValue2, type, setType, directoriesAllowed, setDirectoriesAllowed}: 
+    {value, setValue, value2, setValue2, type, setType, directoriesAllowed, setDirectoriesAllowed, originDir, newDir}: 
     {
     value: string, 
     setValue: Dispatch<SetStateAction<string>>, 
@@ -11,7 +12,9 @@ export default function SetRegex(
     type: string, 
     setType: Dispatch<SetStateAction<string>>, 
     directoriesAllowed: boolean, 
-    setDirectoriesAllowed: Dispatch<SetStateAction<boolean>>
+    setDirectoriesAllowed: Dispatch<SetStateAction<boolean>>,
+    originDir: string,
+    newDir: string
 }
     
 
@@ -75,12 +78,30 @@ export default function SetRegex(
             </div>
 
 
-            <div className="flex gap-2 justify-center">
-                <TextButton text={`Starts with ` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("START")}}/>
-                <TextButton text={`Ends with ` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("END")}}/>
-                <TextButton text={`Contains ` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("CONTAINS")}}/>
-                <TextButton text={`Has Extension .` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("EXTENSION")}}/> 
-                                  
+            <div className="flex gap-2 justify-center items-center">
+
+                <p className="">If</p>
+
+                <div className="flex justify-center gap-1 items-center">
+                    <img src={folderImg} alt="Folder Icon" className="w-4 h-4 invert"/>
+                    <p>{originDir}</p>
+                </div>
+
+                <select 
+                className="bg-primary-container rounded-full px-4 py-1"
+                value={mode} onChange={(e) => {setMode(e.target.value)}}>
+                    <option value="CONTAINS">contains "{(value2.length === 0 ? "Keyword" : value2)}"</option>
+                    <option value="START">starts with "{value2}"</option>
+                    <option value="END">ends with "{value2}"</option>
+                    <option value="EXTENSION">has the extension ".{value2}"</option>
+                    
+                </select>
+
+                <p> {"-->"} Place that file in </p>
+                <div className="flex justify-center gap-1 items-center">
+                    <img src={folderImg} alt="Folder Icon" className="w-4 h-4 invert"/>
+                    <p>{newDir}</p>
+                </div>                         
             </div>
         </>
     )
