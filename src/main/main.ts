@@ -174,12 +174,13 @@ const handleNewFileAdded = async (filePath: string, rules: Rule[]) => { // Autom
 
   for (const rule of rules) { 
     // If statements are layered so that if one if doesnt pass, we don't need to process the rest of the ifs
+    // Mostly the Regex one
     if (rule.automationActive) {
         if (rule.originDirectory === dirPath) {
           const regexMatch: boolean = RegExp(rule.keyword).test(fileName)
           if (regexMatch) {
             await fs.rename(filePath, path.join(rule.newDirectory, fileName))
-            console.log("Successful move of " + fileName + " to " + rule.newDirectory)
+            console.log("Successful move of \'" + fileName + "\' to " + rule.newDirectory + " at " + new Date().toLocaleTimeString())
             return
           }
         }
@@ -227,7 +228,7 @@ const startWatching = async () => {
   const flowgraph: SavedFlowgraph = await store.get("flowgraph") ?? [];
   const rules: Rule[] = flowgraph.edges.map((edge) => {return edge.data.value}) || [];
 
-  const rulesMap = new Map(flowgraph.edges.map((edge) => [edge.data.value.originDirectory, edge.data.value]))
+  const rulesMap = Map.groupBy(rules, (rule) => {return rule.originDirectory});
   console.log(rulesMap);
 
 

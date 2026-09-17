@@ -1,37 +1,59 @@
 import { ChangeEvent, Dispatch, SetStateAction, useEffect, useState } from "react";
 import TextButton from "./TextButton"
 
-export default function SetRegex({value, setValue, value2, setValue2}: {value: string, setValue: Dispatch<SetStateAction<string>>, value2: string, setValue2: Dispatch<SetStateAction<string>>}) {
+export default function SetRegex(
+    {value, setValue, value2, setValue2, type, setType, directoriesAllowed, setDirectoriesAllowed}: 
+    {
+    value: string, 
+    setValue: Dispatch<SetStateAction<string>>, 
+    value2: string, 
+    setValue2: Dispatch<SetStateAction<string>>, 
+    type: string, 
+    setType: Dispatch<SetStateAction<string>>, 
+    directoriesAllowed: boolean, 
+    setDirectoriesAllowed: Dispatch<SetStateAction<boolean>>
+}
+    
+
+
+) {
+
+
     const [query, setQuery] = useState("");
-    const [mode, setMode] = useState("NAME");
+    const [mode, setMode] = useState("CONTAINS");
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
         setQuery(inputValue)
         setValue2(inputValue)
 
-        if (mode === "EXTENSION") {
-            setValue(`.+[.]${inputValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
-        }
-        else if (mode === "NAME") {
-            setValue(`^.*${inputValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*[.]`)
-        } 
-        else if (mode === "FOLDER NAME") {
-            setValue(`${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
-        }
+        determineRegex();
     }
 
     useEffect(() => {
-        if (mode === "EXTENSION") {
-            setValue(`.+[.]${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+        setType(mode);
+        determineRegex();
+    }, [mode, query])
+
+    const determineRegex = () => {
+        let folderExtension = "";
+        if (!directoriesAllowed) {
+            folderExtension = "[.].*"
         }
-        else if (mode === "NAME") {
-            setValue(`^.*${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*[.]`)
-        } 
-        else if (mode === "FOLDER NAME") {
-            setValue(`${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+
+        if (mode === "START") {
+            setValue(`${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*${folderExtension}`)
         }
-    }, [mode])
+        else if (mode === "END") {
+            setValue(`.*${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${folderExtension}`)
+        }
+        else if (mode === "CONTAINS") {
+            setValue(`.*${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*${folderExtension}`)
+        }
+        else if (mode === "EXTENSION") {
+            setValue(`[.]${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+        }
+    }
 
 
 
@@ -40,13 +62,25 @@ export default function SetRegex({value, setValue, value2, setValue2}: {value: s
             <input 
             onChange={(e) => {handleChange(e)}}
             value={query}
-            placeholder="Set Regex Pattern"
+            placeholder="Type in the Keyword that will be used to sort files within this folder..."
+            maxLength={25}
+            className="bg-on-surface text-surface rounded-full px-4 py-1.5 w-full"
             ></input>
 
-            <p>Current Mode: {mode}</p>
-            <div className="flex gap-2">
-                <TextButton text="Search for Extension" clickFunction={() => {setMode("EXTENSION")}}/>
-                <TextButton text="Search for Name" clickFunction={() => {setMode("NAME")}}/>
+            <div className="flex gap-3">
+                Sort Folders?
+                <input type="checkbox" checked={directoriesAllowed} onChange={() => setDirectoriesAllowed((prev) => {return !prev})}
+                />
+                
+            </div>
+
+
+            <div className="flex gap-2 justify-center">
+                <TextButton text={`Starts with ` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("START")}}/>
+                <TextButton text={`Ends with ` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("END")}}/>
+                <TextButton text={`Contains ` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("CONTAINS")}}/>
+                <TextButton text={`Has Extension .` + (query.length !== 0 ? `${query}` : "Keyword") } clickFunction={() => {setMode("EXTENSION")}}/> 
+                                  
             </div>
         </>
     )

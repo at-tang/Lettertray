@@ -169,12 +169,13 @@ export default function Flowgraph() {
                 fitView
 
                 minZoom={0.5}
-                maxZoom={1.5}
+                maxZoom={2}
 
                 
 
                 proOptions={proOptions}
                 >
+                    
                     <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border-4! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
                     <Background className="bg-surface!" />
 

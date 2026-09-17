@@ -3,13 +3,16 @@ import { AutomationRequest, Rule } from "../../main/api/types";
 import TextButton from "./TextButton"
 
 export default function SubmitRuleButton(
-    {oldDir, newDir, regex, viewKeyword, callback = () => {}}:
+    {oldDir, newDir, regex, viewKeyword, callback = () => {}, directoriesAllowed = false, caseSensitive = false, type}:
     {
         oldDir: string,
         newDir: string,
         regex: string,
         viewKeyword: string,
-        callback?: (rule: Rule) => any
+        callback?: (rule: Rule) => any,
+        directoriesAllowed: boolean,
+        caseSensitive: boolean,
+        type: string
     }
 
 ) {
@@ -25,12 +28,14 @@ export default function SubmitRuleButton(
         let rule: Rule = {
             id: newIdNumber,
             title: "My Rule",
-            type: "MOVE",
+            type: type,
             originDirectory: oldDir,
             newDirectory: newDir,
             keyword: regex,
             automationActive: true,
-            viewKeyword: viewKeyword
+            viewKeyword: viewKeyword,
+            directoriesAllowed: directoriesAllowed,
+            caseSensitive: caseSensitive
 
         }
 

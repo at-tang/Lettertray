@@ -20,6 +20,8 @@ export default function AddFolder() {
 
             const newId: number = await window.electron.generateId();
 
+
+
             setNodes((nodes) => [...nodes, {
                 id: newId.toString(),
                 position: {x: 0, y: 0},
@@ -35,7 +37,7 @@ export default function AddFolder() {
     }
     return (
         <>
-            <TextButton wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
+            <TextButton color="bg-green-600" wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
         </>
 
     )

@@ -43,12 +43,17 @@ export default function TopLeftPanel({nodes, setNodes}: {nodes: FlowNode[], setN
     }
 
     return (
-        <div className="w-48  bg-surface-container z-100 flex gap-3 items-center justify-center flex-col border-outline-b rounded-2xl border-4 p-6">
-            <TextButton text="Close Editor" wFull={true} clickFunction={() => {navigate("/")}}/>
+        <div className="w-48  bg-surface-container z-100 flex gap-3 items-center justify-center flex-col border-outline-b rounded-2xl border-4 p-6 shadow-lg/30">
+            
             
             <AddFolder/>
             <ClearAllNodes/>
+
+            <div className="mb-3"/>
+
             <TextButton text="Help" wFull={true} clickFunction={() => {}}/>
+            <TextButton text="Close Editor" wFull={true} clickFunction={() => {navigate("/")}}/>
+            
             <TextButton text="Quit App" wFull={true} clickFunction={() => {}}/>
             
 

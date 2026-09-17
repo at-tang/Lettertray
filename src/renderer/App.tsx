@@ -14,19 +14,8 @@ function Hello() {
 
   const navigate = useNavigate();
 
-  const [test, setTest] = useState("");
-
-  const [oldPath, setOldPath] = useState("");
-  const [newPath, setNewPath] = useState("");
-
   const [rules, setRules] = useState([]);
 
-
-  const settingTest = async () => {
-    await window.electron.moveTestingFile();
-
-    return;
-  }
 
   useEffect(() => {
     const getRules = async () => {
@@ -67,9 +56,9 @@ export default function App() {
 
       <Routes>
         
-        <Route path="/" element={<Hello />} />
+
         <Route path="/create" element={<CreateNewRule/>}/>
-        <Route path="/flowgraph" element={
+        <Route path="/" element={
           <div className="h-dvh w-dvw flex flex-col bg-surface-container">
 
             <header className="w-full bg-surface-container-h h-7 flex items-center justify-center" style={{"appRegion": "drag"}}>

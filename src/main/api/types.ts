@@ -30,6 +30,9 @@ export interface Rule {
     automationActive: boolean
     viewKeyword: string
 
+    directoriesAllowed: boolean
+    caseSensitive: boolean
+
 }
 
 export interface SavedFlowgraph {

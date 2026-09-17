@@ -7,7 +7,7 @@ import { FlowgraphContext } from "../Flowgraph";
 
 export default function CustomNode({id, data}) {
 
-    const [displayValue, setDisplayValue] = useState(data.value)
+    const [displayValue, setDisplayValue] = useState(data.label)
     const { updateNodeData, setEdges, getNodes, getEdges } = useReactFlow();
     const [showFull, setShowFull] = useState(false)
 
@@ -82,7 +82,7 @@ export default function CustomNode({id, data}) {
 
                 
 
-                <Handle type="source" position={Position.Right} className="w-0! h-0! border-y-[15px]! border-y-transparent! border-x-transparent! border-l-[30px]! border-l-yellow-500! bg-transparent! rounded-none! hover:scale-120! transition!" />
+                <Handle type="source" position={Position.Right} className="w-0! h-0! border-y-[15px]! border-y-transparent! border-x-transparent! border-l-[30px]! border-l-yellow-400! bg-transparent! rounded-none! hover:scale-120! transition!" />
 
             </div>
 

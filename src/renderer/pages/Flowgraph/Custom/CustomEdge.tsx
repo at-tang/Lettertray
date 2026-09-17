@@ -52,7 +52,7 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
 
       <EdgeLabelRenderer>
         <span 
-        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-surface-container-h border-outline-b border-4 px-8 py-2 rounded-2xl text-on-surface flex items-center gap-2"}
+        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-surface-container-h border-outline-b border-4 px-8 py-4 rounded-2xl text-on-surface flex flex-col items-center gap-4 text-lg "}
         
         style={{
             position: 'absolute',
@@ -61,17 +61,27 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
           }}
 
           >
-            <img src={fileIcon} className="w-5 h-5 invert"/>
-            <div>
-                {data.value.keyword}
-                <p>Origin: {data.value.originDirectory}</p>
-                <p>New: {data.value.newDirectory}</p>
-                
+        <div className="flex gap-3 items-center">
+        <img src={fileIcon} className="w-8 h-8 invert"/>
+                <div>
+                    {(data.value.type === "START" ? `\"${data.value.viewKeyword}...\"` :
+                      data.value.type === "END" ? `\"...${data.value.viewKeyword}\"` :
+                      data.value.type === "CONTAINS" ? `\"...${data.value.viewKeyword}...\"` :
+                      data.value.type === "EXTENSION" ? `\".${data.value.viewKeyword}\"` :
+                      "N/A"
+                    )}
+        
+                </div>
+            </div>
+           
+
+            <div className="flex justify-center gap-3 items-center">
+              <SetAutomationActive rule={data.value} id={id}/>
+
+              <DeleteEdgeButton id={id}/>
             </div>
 
-            <SetAutomationActive rule={data.value} id={id}/>
 
-            <DeleteEdgeButton id={id}/>
 
             
 
