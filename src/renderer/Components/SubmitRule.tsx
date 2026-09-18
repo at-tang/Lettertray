@@ -17,6 +17,9 @@ export default function SubmitRuleButton(
     }
 
 ) {
+    /*
+    Currently not used. Deprecated.
+    */
 
     const navigate = useNavigate();
     const [errorText, setErrorText] = useState("");

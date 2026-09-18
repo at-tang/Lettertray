@@ -157,7 +157,7 @@ ipcMain.handle('dialog:openDirectory', async () => {
   }
 });
 
-const handleNewFileAdded = async (filePath: string, rules: Rule[], retries: number = 5, delay: number = 300) => {
+const handleNewFileAdded = async (filePath: string, rules: Rule[] = [], retries: number = 5, delay: number = 300) => {
 
   // Main function handling the moving of files based on the user's sorting parameters
   // filePath is the current file being addressed
@@ -360,7 +360,25 @@ const startWatching = async () => {
 
     }
   });
+
+    fileWatcher.on('addDir', (filePath) => {
+    try {
+
+      // When the move file function checks to see which rules to check,
+      // it will only check rules pertaining the original directory, rather than EVERY rule 
+      let selectRules = rulesMap.get(path.dirname(filePath));
+      let mfp: MoveFilePayload = { filepath: filePath, rules: selectRules}
+      fileQueue.push(mfp) // Push onto the queue
+
+    } catch (err) {
+      console.error("Could not push Directory: " + filePath + " onto the queue.")
+
+    }
+  });
 };
+};
+
+
 
 // :====================================
 

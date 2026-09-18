@@ -10,43 +10,6 @@ import RuleList from './Components/RuleView/RuleList';
 import Flowgraph from './pages/Flowgraph/Flowgraph';
 
 
-function Hello() {
-
-  const navigate = useNavigate();
-
-  const [rules, setRules] = useState([]);
-
-
-  useEffect(() => {
-    const getRules = async () => {
-      const result = await window.electron.getRules();
-      setRules(result);
-      
-    }
-    getRules();
-
-  }, [])
-
-  useEffect(() => {console.log(rules)}, [rules])
-
-  //      <RuleList rules={rules} setRules={setRules}/>
-  return (
-    <div className="p-4">
-
-      <TextButton clickFunction={() => {navigate("/create")}} text="Add Rule"/>
-        <TextButton clickFunction={() => {navigate("/flowgraph")}} text="Flowgraph"/>
-
-      <TextButton text="Clear All Rules" clickFunction={async () => {await window.electron.clearAllRules()}}/>
-
-        <RuleList rules={rules} setRules={setRules}/>
-
-
-
-
-
-      </div>
-  );
-}
 
 export default function App() {
   return (

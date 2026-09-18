@@ -1,4 +1,5 @@
 import { Edge } from "@xyflow/react";
+import { Keyword } from "../../renderer/Components/AddRules/AddRules";
 
 export class AutomationRequest {
     title: string;
@@ -31,7 +32,8 @@ export interface Rule {
     viewKeyword: string
 
     directoriesAllowed: boolean
-    caseSensitive: boolean
+    caseSensitive: boolean,
+    data: Keyword[]
 
 }
 

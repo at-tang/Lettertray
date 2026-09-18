@@ -9,6 +9,7 @@ import Popup from "../../Components/Popup";
 import AddRulePopup from "./Components/AddRulePopup";
 import { CustomEdge } from "./Custom/CustomEdge";
 import CustomNode from "./Custom/CustomNode";
+import AddRules from "../../Components/AddRules/AddRules";
 
 export const FlowgraphContext = createContext();
 export default function Flowgraph() {
@@ -63,9 +64,9 @@ export default function Flowgraph() {
         const saveFlowgraph = async () => {
             const flowgraph = {nodes: nodes, edges: edges
             }
-            if (initialLoadDone) await window.electron.saveFlowgraph(flowgraph); 
+            await window.electron.saveFlowgraph(flowgraph); 
         }
-        saveFlowgraph(); 
+        if (initialLoadDone) saveFlowgraph(); // Done to make sure saved flowgraph is not overwritten
         console.log(edges)     
     }, [edges])
 
@@ -127,6 +128,8 @@ export default function Flowgraph() {
             // Currently, edges with the same source and connection are not permitted
             // This may change in the future
             if (edges.some((edge) => {return edge.source === connection.source && edge.target === connection.target}) === true) {
+                console.log("Edge Source: " + connection.source)
+                console.log("Edge Target: " + connection.target)
                 return;
             } else {
                 const originDirectory = nodes.find((node) => {return node.id == connection.source})?.data.value;
@@ -145,12 +148,14 @@ export default function Flowgraph() {
     const proOptions = {hideAttribution: true}
 
 
+    // <AddRulePopup oldDir={oldDir} newDir={newDir} nodes={nodes} edges={edges} connection={currConnection} setEdges={setEdges} setPopupStatus={setAddPopup}/>
 
     return (
         <>
         <FlowgraphContext.Provider value={{dragging, setDragging, connecting, setConnecting}}>
             <Popup value={addPopup} setValue={setAddPopup}>
-                <AddRulePopup oldDir={oldDir} newDir={newDir} nodes={nodes} edges={edges} connection={currConnection} setEdges={setEdges} setPopupStatus={setAddPopup}/>
+                <AddRules oldDir={oldDir} newDir={newDir} edges={edges} nodes={nodes} setPopupStatus={setAddPopup} setEdges={setEdges} connection={currConnection}/>
+                
             </Popup>
             
 

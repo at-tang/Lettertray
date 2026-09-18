@@ -18,6 +18,16 @@ Reconfigure the Keyword selection for each rule to have four different configura
 
 Optimize program to only save at select intervals, rather than at every change [COMPLETE]
 
-Create a delete button for each edge/rule [COMPLETE, 2026/09/26]
+Create a delete button for each edge/rule [COMPLETE, 2026/09/16]
 
-Create a delete button for each node / folder being watched 
+Create a delete button for each node / folder being watched [COMPLETE]
+
+Allow each edge to have more than one rule, or be able to filter two types of files (e.g. .png and .jpg) [COMPLETE]
+
+Implement an Edit Button to Edges (Last core feature)
+
+Create a brief Help section
+
+
+
+
