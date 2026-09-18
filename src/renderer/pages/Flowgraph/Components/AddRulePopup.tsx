@@ -21,11 +21,14 @@ export default function AddRulePopup(
     const [keyword, setKeyword] = useState("");
     const [viewKeyword, setViewKeyword] = useState("");
 
+
+
     const [type, setType] = useState("CONTAINS");
     const [directoriesAllowed, setDirectoriesAllowed] = useState(false);
     const [caseSensitive, setCaseSensitive] = useState(false);
 
-
+    const [keywordList, setKeywordList] = useState([""]);
+    const [viewKeywordList, setViewKeywordList] = useState("");
 
     useEffect(() => {
         console.log(keyword);
@@ -34,7 +37,7 @@ export default function AddRulePopup(
     }, [keyword, viewKeyword])
 
     return (
-        <div className="min-w-[800px] max-w-[1000px]">
+        <div className="min-w-[800px] max-w-[1000px] max-h-dvh">
             <section className="flex-col flex gap-6">
                 <div className="flex justify-center gap-3 items-center">
                     <img src={folderImg} alt="Folder Icon" className="w-6 h-6 invert"/>

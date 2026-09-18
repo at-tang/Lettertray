@@ -28,7 +28,7 @@ export default function CustomNode({id, data}) {
             if (success) {
                 const label = newPath.split(/[\\/]/).pop() ?? newPath;
                 console.log("Id: " + id);
-                // Issue here, updatingNodes does not reflect immediately. 
+  
                 await updateNodeData(id, {value: newPath, label});
                 console.log("HandleChangeData Nodes: " + JSON.stringify(getNodes()));
 
@@ -82,8 +82,8 @@ export default function CustomNode({id, data}) {
 
                 
 
-                <Handle type="target" position={Position.Left} isConnectableStart={false}  className={"w-9! h-9! z-10 bg-primary-container! border-0! hover:scale-120! transition! "} >
-                    <div className={"w-9! h-9! bg-primary-container! rounded-full! border-0! hover:scale-120! transition! " + (connecting ? " animate-ping! origin-center!  -absolute!  " : " ")}/>
+                <Handle type="target" position={Position.Left} isConnectableStart={false}  className={"w-9! h-9! z-10! bg-primary-container! border-0! hover:brightness-125 transition! "} >
+                    <div className={"w-9! h-9! bg-primary-container! rounded-full! border-0! hover:brightness-125! transition! " + (connecting ? " animate-ping! origin-center!  -absolute!  " : " ")}/>
 
                 </Handle>
 

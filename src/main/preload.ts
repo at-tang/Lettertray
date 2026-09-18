@@ -58,6 +58,14 @@ const electronHandler = {
     return ipcRenderer.invoke('open-folder', filePath);
   },
 
+  minimizeApp() {
+    return ipcRenderer.invoke('minimize-app')
+  },
+
+  closeApp() {
+    return ipcRenderer.invoke('close-app')
+  },
+
 
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {

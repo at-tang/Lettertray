@@ -65,7 +65,8 @@ export default function Flowgraph() {
             }
             if (initialLoadDone) await window.electron.saveFlowgraph(flowgraph); 
         }
-        saveFlowgraph();      
+        saveFlowgraph(); 
+        console.log(edges)     
     }, [edges])
 
 
@@ -94,6 +95,7 @@ export default function Flowgraph() {
     // Updates the state arrays nodes/edges whenever a change is detected
     const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), [], )
     const onEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => {
+        // Edges may receive multiple duplicate saves
         setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot))
         console.log("Edges: " + edges)
         window.electron.saveFlowgraph({nodes: nodes, edges: edges})
