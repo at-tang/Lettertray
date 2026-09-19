@@ -17,14 +17,6 @@ const electronHandler = {
     return ipcRenderer.invoke('save-flowgraph', flowgraph)
   },
 
-  handleFlowgraphEdgeDelete(edges: Edge[]) {
-    return ipcRenderer.invoke('flowgraph-on-edge-delete', edges)
-  },
-
-  handleFlowgraphNodeDelete(nodes: Node[]) {
-    return ipcRenderer.invoke('flowgraph-on-node-delete', nodes);
-  },
-
   handleNodeChangeData(oldPath: string, newPath: string) {
     return ipcRenderer.invoke('flowgraph-node-change-data', oldPath, newPath)
   },
@@ -64,6 +56,10 @@ const electronHandler = {
 
   closeApp() {
     return ipcRenderer.invoke('close-app')
+  },
+
+  setToBackground() {
+    return ipcRenderer.invoke('set-to-background')
   },
 
 

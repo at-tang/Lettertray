@@ -19,7 +19,7 @@ export default function SetAutomationActive({rule, id}: {rule: Rule, id: string}
     return (
         <button 
         onClick={() => {handleClick()}}
-        className={" h-8 w-8 z-10 rounded-full flex items-center justify-center hover:cursor-pointer hover:scale-120 transition ease-in-out"}>
+        className={" h-10 w-10 z-10 rounded-full flex items-center justify-center hover:cursor-pointer hover:scale-120 transition ease-in-out"}>
             <img src={cogImg}  className={(rule.automationActive ? " animate-spin " : " ") + " h-8 w-8 invert "} alt="gear image"/>
 
 

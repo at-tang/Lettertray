@@ -5,6 +5,7 @@ import { generateId } from "../../../../main/ipcMainhandleFunctions/ruleId/gener
 import ClearAllNodes from "./MainPanel/ClearAllNodes";
 import { useReactFlow } from "@xyflow/react";
 import AddFolder from "./MainPanel/AddFolder";
+import QuitApp from "./MainPanel/QuitApp";
 
 export type FlowNode = {
     id: string;
@@ -52,9 +53,9 @@ export default function TopLeftPanel({nodes, setNodes}: {nodes: FlowNode[], setN
             <div className="mb-3"/>
 
             <TextButton text="Help" wFull={true} clickFunction={() => {}}/>
-            <TextButton text="Close Editor" wFull={true} clickFunction={() => {navigate("/")}}/>
+            <TextButton text="Hide Editor" wFull={true} clickFunction={async () => {await window.electron.setToBackground()}}/>
             
-            <TextButton text="Quit App" wFull={true} clickFunction={() => {}}/>
+            <QuitApp/>
             
 
         </div>

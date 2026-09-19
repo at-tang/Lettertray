@@ -10,134 +10,95 @@
  */
 import path from 'path';
 import fs from 'fs/promises';
-import { app, BrowserWindow, shell, ipcMain, dialog, Tray, Menu } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import type { AutomationRequest, Rule, SavedFlowgraph } from './api/types';
 import { Edge } from '@xyflow/react';
-import { handleFlowgraphEdgeDelete } from './ipcMainhandleFunctions/flowgraph/handleFlowgraphEdgeDelete';
-import { handleFlowgraphNodeDelete } from './ipcMainhandleFunctions/flowgraph/handleFlowgraphNodeDelete';
 import { mainCreateNewRule } from './ipcMainhandleFunctions/rule/createNewRule';
 import { generateId } from './ipcMainhandleFunctions/ruleId/generateId';
-
+import { handleNewFileAdded } from './ipcMainhandleFunctions/movingFiles/handleNewFileAdded';
+import { FileQueue, MoveFilePayload } from './ipcMainhandleFunctions/movingFiles/FileQueue';
+import { openFolderInNative } from './ipcMainhandleFunctions/openExternalWindows/openFolder';
+import { submitDirectory } from './ipcMainhandleFunctions/openExternalWindows/submitDirectory';
+import { clearFlowgraph } from './ipcMainhandleFunctions/flowgraph/clearFlowgraph';
+import { saveFlowgraph } from './ipcMainhandleFunctions/flowgraph/saveFlowgraph';
+import { getFlowgraph } from './ipcMainhandleFunctions/flowgraph/getFlowgraph';
+import { handleNodeChangeData } from './ipcMainhandleFunctions/flowgraph/handleNodeChangeData';
+import { createTrayMenu } from './ipcMainhandleFunctions/tray/TrayMenu';
 
 // For watching folders and automatically filtering
 let watcher: { add: (paths: string | string[]) => unknown } | null = null;
 
-ipcMain.handle('flowgraph-on-edge-delete', async (_event, edges: Edge[]) => {
-  handleFlowgraphEdgeDelete(edges);
-})
 
-ipcMain.handle('flowgraph-on-node-delete', async (_event, nodes: Node[]) => {
-  handleFlowgraphNodeDelete(nodes);
-})
+// Modifying Flowgraph :===========================================================
 
 ipcMain.handle('flowgraph-node-change-data', async (_event, oldPath: string, newPath: string) => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
-
-  const flowgraph: SavedFlowgraph = await store.get("flowgraph") || [];
-  const rules: Rule[] = [flowgraph.edges.map((edge) => edge.data.value)]
-  console.log(rules)
-
-  let newRules = [...rules]
-
-
-  // Check that new folder is not already part of the flowgraph
-  // If it is, return false, ending the program early and denying any altercation
-  // In the future, there may be an option to SWAP directories
-  for (const rule of rules) {
-    if (rule.originDirectory === newPath || rule.newDirectory === newPath || oldPath === newPath) {
-      return false;
-    }
-
-  }
-
-  for (const rule of newRules) {
-    if (rule.originDirectory === oldPath) {
-      rule.originDirectory = newPath;
-    }
-
-    if (rule.newDirectory === oldPath) {
-      rule.newDirectory = newPath;
-    }
-  }
-
-  await store.set("rules", newRules)
-
+  const result = await handleNodeChangeData(oldPath, newPath);
+  if (!result) return false;
 
   startWatching();
-
   return true;
- 
 })
 
 ipcMain.handle('get-flowgraph', async () => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
-
-  if (!store.has("flowgraph")) return {nodes: [], edges: []};
-  const result = await store.get("flowgraph")
-  return result;
+  return await getFlowgraph();
 })
 
-ipcMain.handle('save-flowgraph', async (_event, flowgraph) => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
-  
-  try {
-    await store.set("flowgraph", flowgraph);
-  } catch (err) {
-    console.error(err);
-  }
+ipcMain.handle('save-flowgraph', async (_event, flowgraph: SavedFlowgraph) => {
+  await saveFlowgraph(flowgraph)
   startWatching();
 })
-
-
-ipcMain.handle('get-rules', async () => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
-
-  if(!store.has("rules")) return [];
-
-  return store.get("rules");
-})
-
-
-ipcMain.handle('create-new-rule', async (_event, r: Rule) => {
-  // Add new rule. The function returns the rule added
-  const newRule = await mainCreateNewRule(r);
-
-  // Add the originDirectory of the new rule to the list of files being actively watched
-  watcher?.add(newRule.originDirectory);
-})
-
-
-ipcMain.handle('delete-rule', async (_event, index: number) => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
-
-  const rules: Array<Rule> = await store.get("rules") || [];
-  if (rules.length < 1) return;
-  const newRules = rules.filter((_, i) => i !== index);
-  store.set("rules", newRules);
-  startWatching();
-  return
-
-})
-
 
 ipcMain.handle('clear-all-rules', async () => {
-  const { default: Store } = await import('electron-store');
-  const store = new Store();
-  
-  store.delete("rules");
-  store.delete("flowgraph");
+  await clearFlowgraph();
   startWatching();
+})     
+
+ipcMain.handle('generate-id', async () => { // Generate a sequential id
+  return await generateId();
 })
 
+
+// Handling Main Window :=======================================================
+
+ipcMain.handle('minimize-app', async () => {
+  // Simple minimization of the app. Akin to the yellow traffic button on Mac Systems
+  console.log("Attempting to minimize app!")
+  mainWindow?.minimize();
+})
+
+ipcMain.handle('close-app', async () => {
+  // Closes the app. If on Windows/Linux, complete quit. On Mac, simply close the main window but leave
+  // application in memory
+    if (process.platform !== 'darwin') {
+      app.quit();
+    } else {
+      const { default: Store } = await import('electron-store');
+      const store = new Store();
+      store.set("appOn", false)
+      mainWindow?.close();    
+    }
+})
+
+ipcMain.handle('set-to-background', async () => {
+
+    const { default: Store } = await import('electron-store');
+    const store = new Store();
+    store.set("appOn", false)
+  
+  mainWindow?.hide();
+  app.dock.hide();
+})
+
+
+// Handling External Windows :=======================================================
+
+ipcMain.handle('open-folder', async (_event, filePath: string) => {
+  await openFolderInNative(filePath);
+})
 
 ipcMain.handle('dialog:openDirectory', async () => {
   /*
@@ -145,163 +106,14 @@ ipcMain.handle('dialog:openDirectory', async () => {
   Returns the absolute path as a string if a directory is selected.
   Returns null if the user cancels the request
   */
-
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory', 'createDirectory']
-  });
-
-  if (result.canceled) {
-    return null;
-  } else {
-    return result.filePaths[0]; // Absolute path string
-  }
+  return await submitDirectory();
 });
 
-const handleNewFileAdded = async (filePath: string, rules: Rule[] = [], retries: number = 5, delay: number = 300) => {
-
-  // Main function handling the moving of files based on the user's sorting parameters
-  // filePath is the current file being addressed
-
-  const dirPath = path.dirname(filePath);
-  const fileName = path.basename(filePath);
-
-  for (const rule of rules) { 
-    // If statements are layered so that if one if doesnt pass, we don't need to process the rest of the ifs
-    // If the rule isn't active or directories don't match, then we don't need to compute Regex
-    if (rule.automationActive) {
-        if (rule.originDirectory === dirPath) {
-          const regexMatch: boolean = RegExp(rule.keyword).test(fileName)
-          if (regexMatch) {
-
-            for (let attempts = 1; attempts <= retries; attempts++) {
-
-              // Attempt to move the file
-              try {
-                await fs.rename(filePath, path.join(rule.newDirectory, fileName))
-                console.log("Successful move of \'" + fileName + "\' to " + rule.newDirectory + " at " + new Date().toLocaleTimeString())
-                return
-              } 
-              
-              catch (err) {
-
-                // try an alternative method
-                if (err.code === 'EXDEV' || err.code === 'EBUSY' || err.code === 'EPERM') {
-                  try {
-                    await fs.copyFile(filePath, path.join(rule.newDirectory, fileName))
-                    await fs.unlink(filePath)
-                  }
-                  catch (copyFileErr) {
-                    console.error(copyFileErr)
-                  }
-
-                }
-
-              }
-
-              // If this is the last allocated attempt to move, then the algorithm just moves on
-              if (attempts === retries) {
-                throw new Error("Attempts at moving file " + filePath + " exhausted.");
-              }
-              
-              await new Promise(resolve => setTimeout(resolve, delay)) // Timer
-
-
-            }
-
-          }
-        }
-    }
-
-    }
-
-}
-
-
-
-ipcMain.handle('generate-id', async () => {
-  return await generateId();
-})
-
-ipcMain.handle('minimize-app', async () => {
-  console.log("Attempting to minimize app!")
-  mainWindow?.minimize();
-})
-
-ipcMain.handle('close-app', async () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    } else {
-      mainWindow?.close();
-      
-    }
-})
-
-ipcMain.handle('open-folder', async (_event, filePath: string) => {
-
-  try {
-    await shell.openPath(filePath);
-  } catch (error) {
-    console.error("An error occured:", error);
-  }
-
-})
-
-
-class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
 
 // Watching :====================================
 
-interface MoveFilePayload {
-  filepath: String,
-  rules: Rule[]
-
-}
-
-class FileQueue {
-  /*
-  FileQueue: Maintains a queue of files that have been added to a folder
-  watched by Chokidar. Manages the moving files process, particularly in
-  making sure that the number of concurrent operations is limited, as to not
-  crash the program.
-  */
-  queue: MoveFilePayload[]
-  processing: boolean
-
-  constructor() {
-    this.queue = [];
-    this.processing = false;
-  }
-
-  push(mfp: MoveFilePayload) {
-    this.queue.push(mfp)
-    this.processNext();
-  }
-
-  async processNext() {
-    if (this.processing || this.queue.length === 0) return;
-
-    this.processing = true;
-    const nextMove = this.queue.shift();
-
-    try {
-      await handleNewFileAdded(nextMove?.filepath, nextMove?.rules)
-    }
-    catch (err) {
-      console.error(err)
-    }
-    finally {
-      this.processing = false;
-      setImmediate(() => this.processNext())
-    }
-  }
-}
-
+// Establishes the fileQueue where files will be queued to see if they need to be moved
+// See the ipcMainHandleFunctions/movingFiles/FileQueue.ts for more info
 const fileQueue = new FileQueue();
 
 
@@ -318,10 +130,10 @@ const startWatching = async () => {
   const flowgraph: SavedFlowgraph = await store.get("flowgraph") ?? [];
   const rules: Rule[] = flowgraph.edges.map((edge) => {return edge.data.value}) || [];
 
-  const rulesMap = Map.groupBy(rules, (rule) => {return rule.originDirectory});
+  const rulesMap = Map.groupBy(rules, (rule: Rule) => {return rule.originDirectory});
   console.log(rulesMap);
 
-
+  // Compile a list of all the directories where files will be sorted FROM
   let watchedFolders: string[] = [];
   if (flowgraph.edges.length > 0) {
     watchedFolders = flowgraph.edges.map((edge) => {return edge.data.value.originDirectory})
@@ -344,23 +156,22 @@ const startWatching = async () => {
     },
     depth: 0
   });
+
   watcher = fileWatcher;
 
   fileWatcher.on('add', (filePath) => {
     try {
-
-      // When the move file function checks to see which rules to check,
-      // it will only check rules pertaining the original directory, rather than EVERY rule 
-      let selectRules = rulesMap.get(path.dirname(filePath));
-      let mfp: MoveFilePayload = { filepath: filePath, rules: selectRules}
+      // Push the detected file onto the queue to see if it needs to be moved
+      let selectRules = rulesMap.get(path.dirname(filePath)); 
+      let mfp: MoveFilePayload = { filepath: filePath, rules: selectRules} // Each queue object only receives the rules pertaining to the folder being watched
       fileQueue.push(mfp) // Push onto the queue
 
     } catch (err) {
       console.error("Could not push: " + filePath + " onto the queue.")
-
     }
   });
 
+    // For directories, the same process applies
     fileWatcher.on('addDir', (filePath) => {
     try {
 
@@ -376,11 +187,34 @@ const startWatching = async () => {
     }
   });
 };
-};
-
 
 
 // :====================================
+const RESOURCES_PATH = app.isPackaged
+    ? path.join(process.resourcesPath, 'assets')
+    : path.join(__dirname, '../../assets');
+
+const getAssetPath = (...paths: string[]): string => {
+    return path.join(RESOURCES_PATH, ...paths);
+  };
+
+const getIconPath = (): string => {
+  if (process.platform === "darwin") {
+      return getAssetPath("icons/icon.icns")
+  } else if (process.platform === 'win32') {
+      return getAssetPath("icons/icon.ico")
+  } else {
+      return getAssetPath("icons/icon.png")
+  }
+}
+
+class AppUpdater {
+  constructor() {
+    log.transports.file.level = 'info';
+    autoUpdater.logger = log;
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+}
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -409,13 +243,6 @@ const createWindow = async () => {
     return;
   }
 
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
-
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -426,7 +253,7 @@ const createWindow = async () => {
     titleBarOverlay: {
       color: '#1d2024'
     },
-    icon: getAssetPath('appIcon.png'),
+    icon: getIconPath(),
     titleBarStyle: 'hidden',
     webPreferences: {
       preload: app.isPackaged
@@ -480,34 +307,64 @@ app.on('window-all-closed', () => {
 });
 
 
-// Tray Menu :==================================================
+
 let tray = null;
+
+app.disableHardwareAcceleration();
+app.name = "Lettertray";
 app
   .whenReady()
   .then(() => {
     startWatching().catch(console.error); // Watches files
 
-    // Tray 
-  
-    tray = new Tray('assets/icons/24x24.png')
+    // App Icon :==============================================================
+
+    const macDockIconPath = getAssetPath("icons/iconRounded.png")
+    const icon = nativeImage.createFromPath(macDockIconPath);
+    if (process.platform === 'darwin') {
+      app.dock.setIcon(icon);
+    }
+
+    // Tray :=================================================================
+
+    tray = new Tray(nativeImage.createFromPath('assets/appIcons/tempAppLogoTray16x16.png'))
     const contextMenu = Menu.buildFromTemplate([
 
       // Button to Show / Hide the main window
-      {label: "Show / Hide App", type: "normal", click: () => {
+      {label: "Lettertray"},
+      {type: "separator"},
+      {label: "Show App", type: "normal", click: async () => {
+
+        const { default: Store } = await import('electron-store');
+        const store = new Store();
+        store.set("appOn", true)
+
         if (!mainWindow || mainWindow.isDestroyed()) {
           createWindow();
           return;
         }
 
-        if (mainWindow.isVisible()) {
-          mainWindow.hide();
-          app.dock.hide();
-        } else {
+        if (!mainWindow.isVisible()) {
           app.show();
           app.dock.show();
           mainWindow.show();
           mainWindow.focus();
         }
+        else {
+          mainWindow.restore();
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      }},
+
+      {label: "Hide Editor", type: "normal", click: async () => {
+        const { default: Store } = await import('electron-store');
+        const store = new Store();
+        store.set("appOn", false) 
+        
+        app.hide();
+        mainWindow?.hide();
+        app.dock.hide();
       }},
 
 
@@ -520,18 +377,49 @@ app
     tray.setToolTip("Lettertray")
     tray.setContextMenu(contextMenu);
 
+
+
+
+    const openWindowOnLaunch = async () => {
+      // Determines if during launch, the main editor should be open or not
+      // If it is the user's first login or there are no nodes, then open it
+      // Otherwise, only open the tray
+
+        const { default: Store } = await import('electron-store');
+        const store = new Store();
+        const flowgraph: SavedFlowgraph = store.get("flowgraph")
+
+        if (!store.has("appOn") || flowgraph.nodes.length === 0) {
+          store.set("appOn", true)
+          mainWindow?.show();
+          mainWindow?.focus();          
+          createWindow();
+        }
+        else if (store.get("appOn") === true) {
+          mainWindow?.show();
+          mainWindow?.focus(); 
+          createWindow();
+          return;
+        }
+        else {
+          app.dock.hide();
+          mainWindow?.hide();
+          store.set("appOn", false)
+          return;
+        }
+    }
+    openWindowOnLaunch();
     
-    
-    createWindow();
+    //createWindow();
+    /*
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
-    
-
-
-
+    */
 
   })
   .catch(console.log);
+
+

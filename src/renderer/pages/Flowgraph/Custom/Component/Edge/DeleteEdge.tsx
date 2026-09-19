@@ -6,13 +6,18 @@ export default function DeleteEdgeButton({id}: {id: String}) {
     const reactFlow = useReactFlow();
 
     const handleDelete = async () => {
-        reactFlow.setEdges(reactFlow.getEdges().filter((edge) => {return edge.id !== id }));
+        await editEdges();
+        await window.electron.saveFlowgraph({nodes: reactFlow.getNodes(), edges: reactFlow.getEdges().filter((edge) => {return edge.id !== id })})
 
+    }
+
+    const editEdges = async () => {
+        reactFlow.setEdges(reactFlow.getEdges().filter((edge) => {return edge.id !== id }));
     }
 
     return (
         <>
-            <TextButton clickFunction={async () => {await handleDelete()}} text="Delete"/>
+            <TextButton color=" bg-red-400 " clickFunction={async () => {await handleDelete()}} text="Delete"/>
         </>
     )
 }

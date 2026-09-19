@@ -17,6 +17,9 @@ export default function AddRulePopup(
         nodes: Node[],
         edges: Edge[]
     }) {
+        /*
+        Currently deprecated. Has been replaced by AddRules.
+        */
 
     const [keyword, setKeyword] = useState("");
     const [viewKeyword, setViewKeyword] = useState("");

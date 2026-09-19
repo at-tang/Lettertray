@@ -150,8 +150,9 @@
     "webpack-merge": "^6.0.1"
   },
   "build": {
-    "productName": "ElectronReact",
+    "productName": "Lettertray",
     "appId": "org.erb.ElectronReact",
+    "icon": "assets/icons/appIcon.png",
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",
     "asarUnpack": "**\\*.{node,dll}",
@@ -161,6 +162,7 @@
       "package.json"
     ],
     "mac": {
+      "icon": "assets/icons/appIcon.png",
       "notarize": false,
       "target": {
         "target": "default",
@@ -210,8 +212,8 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "Aidan Tang",
+      "repo": "Lettertray"
     }
   },
   "collective": {

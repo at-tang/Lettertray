@@ -6,8 +6,27 @@ import DeleteEdgeButton from './Component/Edge/DeleteEdge';
 import { useContext, useState } from 'react';
 import { FlowgraphContext } from '../Flowgraph';
 import arrowImg from '../../../../../assets/appIcons/down_arrow.png'
+import TextButton from '../../../Components/TextButton';
  
-export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, markerEnd }: {id: string, sourceX: number, sourceY: number, targetX: number, targetY: number, data: {value: Rule}}) {
+export function CustomEdge(
+  { id, 
+    sourceX, 
+    sourceY, 
+    targetX, 
+    targetY, 
+    data, 
+    markerEnd,
+
+  }: 
+  {
+    id: string, 
+    sourceX: number,
+    sourceY: number, 
+    targetX: number, 
+    targetY: number, 
+    data: {value: Rule}
+  
+  }) {
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
     sourceY,
@@ -25,21 +44,8 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
   const dx = Math.abs(sourceX - targetX)
   const timeTaken = Math.sqrt(dx * dx + dy * dy) / 150
 
-  const { dragging } = useContext(FlowgraphContext);
+  const { dragging, setOldDir, setNewDir, setEditing, setAddPopup, setEditTemplate } = useContext(FlowgraphContext);
   const [expand, setExpand] = useState(false);
-
-  const createView = () => {
-        let info = data.value.data;
-        let result = "";
-
-        for (let i = 0; i < info.length; i++) {
-            result += `${info[i].type}: \"${info[i].type === "EXTENSION" ? "." : ""}${info[i].query}\"`
-            if (i !== info.length - 1) result += "\n"
-        }
-
-        return result;
-  }
-
 
 
   
@@ -68,13 +74,13 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
 
       <EdgeLabelRenderer>
         <span 
-        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-surface-container-h border-outline-b border-4 px-8 py-4 rounded-2xl text-on-surface flex flex-col items-center gap-4 text-lg "}
+        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-surface-container-h border-outline-b border-4 px-6 py-3 rounded-2xl text-on-surface flex flex-col items-center gap-4 text-lg "}
         
         style={{position: 'absolute', transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`, pointerEvents: 'all',}}
         >
         
         <div className="flex gap-3 items-center">
-        <img onClick={() => {setExpand((prev) => {return !prev})}}src={arrowImg}  className={"w-5 h-8 hover:cursor-pointer " + (expand ? " rotate-0 " : " rotate-270 ")}/>
+        <img onClick={() => {setExpand((prev) => {return !prev})}}src={arrowImg}  className={"w-7 h-12 hover:cursor-pointer hover:scale-120 transition " + (expand ? " rotate-0 " : " -rotate-90 ")}/>
         { !expand &&
         <>
           <p className="text-xl">{(data.value.data.length === 1 ? `${data.value.data.at(0)?.type}: \"${data.value.data.at(0).query}\"` : `${data.value.data.length} Rules`)}</p>
@@ -90,9 +96,9 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
 
             <div className="text-xl">
                   {
-                    data.value.data.map((rule) => {
+                    data.value.data.map((rule, i) => {
                       return (
-                        <p>{`${rule.type}: \"${rule.type === "EXTENSION" ? "." : ""}${rule.query}\"`}</p>
+                        <p key={i}>{`${rule.type}: \"${rule.type === "EXTENSION" ? "." : ""}${rule.query}\"`}</p>
                       )
                     })
                   }
@@ -101,6 +107,15 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
 
             <div className="flex justify-center gap-3 items-center">
               <SetAutomationActive rule={data.value} id={id}/>
+
+              <TextButton text="Edit" clickFunction={() => {
+                setEditTemplate([...data.value.data])
+                setOldDir(data.value.originDirectory);
+                setNewDir(data.value.newDirectory);
+                setEditing(true);
+                setAddPopup(true);
+                return;
+              }}/>
 
               <DeleteEdgeButton id={id}/>
             </div>
@@ -111,7 +126,7 @@ export function CustomEdge({ id, sourceX, sourceY, targetX, targetY, data, marke
 
             
 
-            
+       
           </span>
       </EdgeLabelRenderer>
 

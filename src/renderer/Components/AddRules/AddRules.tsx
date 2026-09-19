@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import AddingRule from "./AddingRule";
 import TextButton from "../TextButton";
 import SubmitRuleButton from "../SubmitRule";
 import { addEdge, Connection, Edge, MarkerType } from "@xyflow/react";
 import { Rule } from "../../../main/api/types";
+import { FlowgraphContext } from "../../pages/Flowgraph/Flowgraph";
 
 export class Keyword {
     regex: string;
@@ -28,7 +29,8 @@ export default function AddRules(
         edges,
         setPopupStatus,
         setEdges,
-        editedKeywordList = [new Keyword("", "", "CONTAINS", 0)]
+        editedKeywordList = [new Keyword("", "", "CONTAINS", 0)],
+        editing,
     }: {
         oldDir: string,
         newDir: string,
@@ -37,7 +39,8 @@ export default function AddRules(
         edges: Edge[],
         setPopupStatus: React.Dispatch<React.SetStateAction<boolean>>,
         setEdges: React.Dispatch<React.SetStateAction<Edge[]>>,
-        editedKeywordList?: Keyword[]
+        editedKeywordList?: Keyword[],
+        editing: boolean
     }
 ) {
 
@@ -47,16 +50,21 @@ export default function AddRules(
     const [errorText, setErrorText] = useState("");
     const [idCounter, setIdCounter] = useState(2);
 
+    const {editTemplate} = useContext(FlowgraphContext)
+
 
     useEffect(() => {
-        console.log(keywordList);
-        
+        setKeywordList(editTemplate)
+        console.log(keywordList)
+
+
+    }, [editTemplate])
+
+    useEffect(() => {
+        console.log("Keyword List")
+        console.log(keywordList)
 
     }, [keywordList])
-
-    useEffect(() => {
-        console.log(finalRegex)
-    }, [finalRegex])
 
 
     const handleSubmit = async () => {
@@ -76,6 +84,32 @@ export default function AddRules(
             
             }
         }
+
+        // Scenario 1: Editing a Rule instead of adding a new one
+
+        if (editing) {
+
+            let modifiedEdges: Edge[] = [...edges]
+            console.log(modifiedEdges)
+            let index = modifiedEdges.findIndex((edge) => {return edge.data.value.originDirectory === oldDir && edge.data.value.newDirectory === newDir});
+
+            if (index === -1) {
+                setPopupStatus(false);
+                console.error("[EDITING] Could not find edge with originDir: " + oldDir + " and newDir: " + newDir)
+                return;
+            }
+
+            modifiedEdges[index].data.value.keyword = newRegex;
+            modifiedEdges[index].data.value.viewKeyword = newView;
+            modifiedEdges[index].data.value.data = keywordList;
+            setEdges(modifiedEdges);
+            setPopupStatus(false)
+            await window.electron.saveFlowgraph({nodes: nodes, edges: modifiedEdges})
+            return 
+
+        }
+
+        // Scenario 2: Adding a new Rule
 
         let rule: Rule = {
             id: newIdNumber,

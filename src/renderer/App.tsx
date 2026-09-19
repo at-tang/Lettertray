@@ -32,7 +32,7 @@ export default function App() {
                 <button onClick={() => {
                   console.log("Test!");
 
-                  window.electron.closeApp();
+                  window.electron.setToBackground();
                 }
                   } className="w-4 h-4 bg-red-400 z-100 [webkit-app-region: no-drag] rounded-full hover:brightness-95" style={{"appRegion": "no-drag"}}>
 

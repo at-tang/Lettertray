@@ -9,7 +9,7 @@ import Popup from "../../Components/Popup";
 import AddRulePopup from "./Components/AddRulePopup";
 import { CustomEdge } from "./Custom/CustomEdge";
 import CustomNode from "./Custom/CustomNode";
-import AddRules from "../../Components/AddRules/AddRules";
+import AddRules, { Keyword } from "../../Components/AddRules/AddRules";
 
 export const FlowgraphContext = createContext();
 export default function Flowgraph() {
@@ -29,36 +29,16 @@ export default function Flowgraph() {
 
     const [dragging, setDragging] = useState(false); // Is the user currently dragging a node?
     const [connecting, setConnecting] = useState(false);
+
+    const [editing, setEditing] = useState(false); // Configures the Add Rule Popup to either edit or add an edge
+    const [editTemplate, setEditTemplate] = useState<Keyword[]>([new Keyword()]);
+
+    useEffect(() => {
+        console.log(`editTemplate:`)
+        console.log(editTemplate)
+    }, [editTemplate])
     
 
-    /*
-    // Every change to the nodes/edges of the flowgraph will update the saved flowgraph in storage
-    useEffect(() => {
-
-        // When nodes are updated, make sure the folders each node represents is reflected in the edges as well
-        // This is mainly for swapping folders in place
-        
-        let newEdges: Edge[] = [...edges]
-        for (let i = 0; i < newEdges.length; i++) {
-            newEdges[i].data.value.originDirectory = nodes.find((node) => {return node.id === newEdges[i].source})?.data.value;
-            newEdges[i].data.value.newDirectory = nodes.find((node) => {return node.id === newEdges[i].target})?.data.value;
-        }
-            
-
-        setEdges(newEdges);
-
-        const saveFlowgraph = async () => {
-            const flowgraph = {nodes: nodes, edges: edges
-            }
-            if (initialLoadDone) await window.electron.saveFlowgraph(flowgraph); 
-        }
-
-        saveFlowgraph();
-
-    }, [nodes])
-
-
-    */
 
     useEffect(() => {
         const saveFlowgraph = async () => {
@@ -104,22 +84,9 @@ export default function Flowgraph() {
         , [],);
 
 
-    /*
-    const onEdgesDelete = async (edges: Edge[]) => {
-       // When a node is deleted, also delete every Rule that uses the folder it represents 
-       await window.electron.handleFlowgraphEdgeDelete(edges);
-        
-    }
-
-    const onNodesDelete = async (nodes: Node[]) => {
-        // When deleting a node, delete every rule where each deleted node is either the origin or destination
-        await window.electron.handleFlowgraphNodeDelete(nodes);
-    }
-        */
-
 
     // When establishing new connections (connecting one node to another), open the "Add Rule" popup
-    const [oldDir, setOldDir] = useState("");
+    const [oldDir, setOldDir] = useState(""); // Used to determine where to create the edge and what it connects
     const [newDir, setNewDir] = useState("");
     const [currConnection, setCurrConnection] = useState<Connection>();
     const onConnect = useCallback(
@@ -128,10 +95,16 @@ export default function Flowgraph() {
             // Currently, edges with the same source and connection are not permitted
             // This may change in the future
             if (edges.some((edge) => {return edge.source === connection.source && edge.target === connection.target}) === true) {
+                let newEdges = [...edges]
+                console.log(newEdges.filter((edge) => {return edge.source === connection.source && edge.target === connection.target}));
                 console.log("Edge Source: " + connection.source)
                 console.log("Edge Target: " + connection.target)
                 return;
             } else {
+
+                setEditing(false)
+                setEditTemplate([new Keyword()])
+
                 const originDirectory = nodes.find((node) => {return node.id == connection.source})?.data.value;
                 const newDirectory = nodes.find((node) => {return node.id == connection.target})?.data.value;
 
@@ -148,13 +121,26 @@ export default function Flowgraph() {
     const proOptions = {hideAttribution: true}
 
 
-    // <AddRulePopup oldDir={oldDir} newDir={newDir} nodes={nodes} edges={edges} connection={currConnection} setEdges={setEdges} setPopupStatus={setAddPopup}/>
 
     return (
         <>
-        <FlowgraphContext.Provider value={{dragging, setDragging, connecting, setConnecting}}>
+        <FlowgraphContext.Provider 
+        value={{dragging, setDragging, connecting, setConnecting, setOldDir, setNewDir, setAddPopup, setEditing, editTemplate, setEditTemplate}}
+        >
+
             <Popup value={addPopup} setValue={setAddPopup}>
-                <AddRules oldDir={oldDir} newDir={newDir} edges={edges} nodes={nodes} setPopupStatus={setAddPopup} setEdges={setEdges} connection={currConnection}/>
+                <AddRules 
+                oldDir={oldDir} 
+                newDir={newDir} 
+                edges={edges} 
+                nodes={nodes} 
+                setPopupStatus={setAddPopup} 
+                setEdges={setEdges} 
+                connection={currConnection}
+                editing={editing}
+                editKeywordList={editTemplate}
+                
+                />
                 
             </Popup>
             
