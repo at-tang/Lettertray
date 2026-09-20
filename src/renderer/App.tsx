@@ -4,10 +4,12 @@ import './App.css';
 import { useEffect, useState } from 'react';
 import TextButton from './Components/TextButton';
 import CreateNewRule from './pages/CreateRule/CreateNewRule';
+import React from 'react';
 
 import { Rule } from '../main/api/types';
 import RuleList from './Components/RuleView/RuleList';
 import Flowgraph from './pages/Flowgraph/Flowgraph';
+import Topbar from './Components/Topbar/Topbar';
 
 
 
@@ -22,41 +24,9 @@ export default function App() {
 
         <Route path="/create" element={<CreateNewRule/>}/>
         <Route path="/" element={
-          <div className="h-dvh w-dvw flex flex-col bg-surface-container">
+          <div className="h-dvh w-dvw flex flex-col bg-surface-container z-90">
 
-            <header className="w-full bg-surface-container-h h-7 flex items-center justify-center " style={{"appRegion": "drag"}}>
-
-
-              <div className="flex-1 flex items-center gap-3 pl-3">
-
-                <button onClick={() => {
-                  console.log("Test!");
-
-                  window.electron.setToBackground();
-                }
-                  } className="w-4 h-4 bg-red-400 z-100 [webkit-app-region: no-drag] rounded-full hover:brightness-95" style={{"appRegion": "no-drag"}}>
-
-                </button>
-
-                <button onClick={() => {
-                  console.log("Test!");
-
-                  window.electron.minimizeApp();
-                }
-                  } className="w-4 h-4 bg-yellow-400 z-100 [webkit-app-region: no-drag] rounded-full hover:brightness-95" style={{"appRegion": "no-drag"}}>
-
-                </button>
-              </div>
-
-              <p className="text-sm">Lettertray (Beta Version)</p>
-
-              <div className="flex-1">
-
-              </div>
-              
-
-            </header>
-            
+            <Topbar/>
 
             <main className="flex-1 grow bg-primary-container w-full max-h-full">
               <Flowgraph/>

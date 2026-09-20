@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import TextButton from "../../Components/TextButton";
-import { addEdge, applyEdgeChanges, applyNodeChanges, Background, Connection, Controls, Edge, EdgeChange, Node, NodeChange, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
+import { addEdge, applyEdgeChanges, applyNodeChanges, Background, Connection, Controls, Edge, EdgeChange, MiniMap, MiniMapNode, Node, NodeChange, Panel, ReactFlow, useReactFlow } from "@xyflow/react";
 import { createContext, useCallback, useEffect, useState } from "react";
 import { AutomationRequest, AutomatorNode, Data, Position } from "../../../main/api/types";
 import '@xyflow/react/dist/style.css';
@@ -21,9 +21,6 @@ export default function Flowgraph() {
 
     const [nodes, setNodes] = useState<FlowNode[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
-
-    const nodeTypes = { customNode: CustomNode }
-    const edgeTypes = { customEdge: CustomEdge }
 
     const [initialLoadDone, setInitialLoadDone] = useState(false);
 
@@ -51,12 +48,9 @@ export default function Flowgraph() {
     }, [edges])
 
 
-    const onNodeDragStop = async () => {
-        setDragging(false)
-        window.electron.saveFlowgraph({nodes: nodes, edges: edges});
-    }
+    const nodeTypes = { customNode: CustomNode }
+    const edgeTypes = { customEdge: CustomEdge }
 
-    
 
 
     // Retrieves all the user's data from storage to construct the flowgraph
@@ -83,7 +77,10 @@ export default function Flowgraph() {
     }
         , [],);
 
-
+    const onNodeDragStop = async () => {
+        setDragging(false)
+        window.electron.saveFlowgraph({nodes: nodes, edges: edges});
+    }
 
     // When establishing new connections (connecting one node to another), open the "Add Rule" popup
     const [oldDir, setOldDir] = useState(""); // Used to determine where to create the edge and what it connects
@@ -99,6 +96,7 @@ export default function Flowgraph() {
                 console.log(newEdges.filter((edge) => {return edge.source === connection.source && edge.target === connection.target}));
                 console.log("Edge Source: " + connection.source)
                 console.log("Edge Target: " + connection.target)
+                console.log(edges)
                 return;
             } else {
 
@@ -184,6 +182,14 @@ export default function Flowgraph() {
                     <Panel position="top-left">
                         <TopLeftPanel nodes={nodes} setNodes={setNodes}/>
                     </Panel>
+
+                    <Panel position="bottom-right">
+                        <div className="p-4 bg-blue-500"/>
+                    </Panel>
+
+                    <MiniMap nodeColor="#2c91ff" color="#2c91ff" className="bg-surface! ">
+
+                    </MiniMap>
 
                 </ReactFlow>
 

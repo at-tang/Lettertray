@@ -52,7 +52,7 @@ export default function TopLeftPanel({nodes, setNodes}: {nodes: FlowNode[], setN
 
             <div className="mb-3"/>
 
-            <TextButton text="Help" wFull={true} clickFunction={() => {}}/>
+            <TextButton text="Help" wFull={true} clickFunction={async () => {await window.electron.openExternalUrl("https://github.com/at-tang/Lettertray/wiki")}}/>
             <TextButton text="Hide Editor" wFull={true} clickFunction={async () => {await window.electron.setToBackground()}}/>
             
             <QuitApp/>

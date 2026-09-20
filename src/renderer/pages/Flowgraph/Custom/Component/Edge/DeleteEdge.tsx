@@ -8,6 +8,7 @@ export default function DeleteEdgeButton({id}: {id: String}) {
     const handleDelete = async () => {
         await editEdges();
         await window.electron.saveFlowgraph({nodes: reactFlow.getNodes(), edges: reactFlow.getEdges().filter((edge) => {return edge.id !== id })})
+        console.log(reactFlow.getEdges())
 
     }
 

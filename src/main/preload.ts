@@ -62,6 +62,10 @@ const electronHandler = {
     return ipcRenderer.invoke('set-to-background')
   },
 
+  openExternalUrl(url: string) {
+    return ipcRenderer.invoke('open-external-window', url)
+  },
+
 
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {

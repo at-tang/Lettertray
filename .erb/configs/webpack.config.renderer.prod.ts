@@ -59,7 +59,7 @@ const configuration: webpack.Configuration = {
         use: [
           MiniCssExtractPlugin.loader,
           'css-loader',
-          '@tailwindcss/webpack',
+          'postcss-loader',
           'sass-loader',
         ],
         exclude: /\.module\.s?(c|a)ss$/,

@@ -44,7 +44,7 @@ export default function AddRules(
     }
 ) {
 
-    const [keywordList, setKeywordList] = useState<Keyword[]>(editedKeywordList)
+    const [keywordList, setKeywordList] = useState<Keyword[]>([...editedKeywordList])
     const [finalRegex, setFinalRegex] = useState("");
 
     const [errorText, setErrorText] = useState("");
@@ -54,8 +54,10 @@ export default function AddRules(
 
 
     useEffect(() => {
-        setKeywordList(editTemplate)
+        console.log("editTemplate useEffect Activated Start :============")
+        setKeywordList([...editTemplate])
         console.log(keywordList)
+        console.log("editTemplate useEffect Activated End :============")
 
 
     }, [editTemplate])
@@ -135,6 +137,7 @@ export default function AddRules(
             data: {value: rule},
             markerEnd: {
                 type: MarkerType.ArrowClosed,
+                color: '#22c55e',
             },
                             
         }

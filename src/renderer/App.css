@@ -1,9 +1,18 @@
 @import '@xyflow/react/dist/style.css' layer(base);
 @import "tailwindcss";
+@source "../**/*.{js,jsx,ts,tsx,html}";
 
 @font-face {
   font-family: 'DMSans';
-  src: url('../../assets/fonts/DMSans.ttf') format('tff');
+  src: url('../../assets/fonts/DMSans.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'EncodeSans';
+  src: url('../../assets/fonts/EncodeSans.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;

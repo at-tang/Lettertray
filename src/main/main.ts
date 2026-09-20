@@ -31,6 +31,7 @@ import { createTrayMenu } from './ipcMainhandleFunctions/tray/TrayMenu';
 
 // For watching folders and automatically filtering
 let watcher: { add: (paths: string | string[]) => unknown } | null = null;
+let tray: Tray | null = null;
 
 
 // Modifying Flowgraph :===========================================================
@@ -108,6 +109,10 @@ ipcMain.handle('dialog:openDirectory', async () => {
   */
   return await submitDirectory();
 });
+
+ipcMain.handle('open-external-window', async (_event, url: string) => {
+  shell.openExternal(url)
+})
 
 
 // Watching :====================================
@@ -200,11 +205,11 @@ const getAssetPath = (...paths: string[]): string => {
 
 const getIconPath = (): string => {
   if (process.platform === "darwin") {
-      return getAssetPath("icons/icon.icns")
+      return getAssetPath("icon.icns")
   } else if (process.platform === 'win32') {
-      return getAssetPath("icons/icon.ico")
+      return getAssetPath("icon.ico")
   } else {
-      return getAssetPath("icons/icon.png")
+      return getAssetPath("icon.png")
   }
 }
 
@@ -307,9 +312,6 @@ app.on('window-all-closed', () => {
 });
 
 
-
-let tray = null;
-
 app.disableHardwareAcceleration();
 app.name = "Lettertray";
 app
@@ -327,7 +329,11 @@ app
 
     // Tray :=================================================================
 
-    tray = new Tray(nativeImage.createFromPath('assets/appIcons/tempAppLogoTray16x16.png'))
+    const trayIconPath = getAssetPath("appIcons/tempAppLogoTray16x16.png");
+    const trayIcon = nativeImage.createFromPath(trayIconPath)
+
+    tray = new Tray(trayIcon)
+
     const contextMenu = Menu.buildFromTemplate([
 
       // Button to Show / Hide the main window

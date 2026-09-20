@@ -44,6 +44,17 @@ export function CustomEdge(
   const dx = Math.abs(sourceX - targetX)
   const timeTaken = Math.sqrt(dx * dx + dy * dy) / 150
 
+  // Circle Animation Configuration
+  const delay = 1.5;
+  const totalDur = timeTaken + delay;
+
+  const pauseRatio = timeTaken / totalDur;
+  const fadeStartRatio = (timeTaken - 0.3) / totalDur;
+
+  const fadeInRatio = Math.min(0.2, timeTaken) / totalDur;
+  const moveRatio = timeTaken / totalDur;
+  
+
   const { dragging, setOldDir, setNewDir, setEditing, setAddPopup, setEditTemplate } = useContext(FlowgraphContext);
   const [expand, setExpand] = useState(false);
 
@@ -53,19 +64,49 @@ export function CustomEdge(
   return (
     <>
 
-      <BaseEdge id={id} path={edgePath}  className={(!data.value.automationActive ? " stroke-green-900! " : " stroke-green-500! ") + " stroke-6! bg-green-500! " } markerEnd={markerEnd}/>
+      <BaseEdge id={id} path={edgePath} className={!data.value.automationActive ? " stroke-green-900! " : " stroke-green-500! " + " stroke-6! bg-green-500! fill-green-500!"} markerEnd={markerEnd}/>
 
       {
       (data.value.automationActive && !dragging ) &&
 
+      
+
       <>
       
         <circle r="10"  className="stroke-green-500! fill-green-500!">
-          <animateMotion dur={`${timeTaken}s`} repeatCount="indefinite" path={edgePath} calcMode="linear"/>
+          <animateMotion 
+          dur={`${totalDur}s`} 
+          repeatCount="indefinite" 
+          path={edgePath} 
+          calcMode="linear"
+          keyTimes={`0; ${pauseRatio}; 1`}
+          keyPoints="0; 1; 1"
+          />
+          <animate
+              attributeName="opacity"
+              dur={`${totalDur}s`}
+              repeatCount="indefinite"
+              keyTimes={`0; ${fadeInRatio}; ${fadeStartRatio}; ${moveRatio}; 1`}
+              values="0; 1; 1; 0; 0"
+            />
         </circle>
 
-        <circle r="8"  className="stroke-green-500! fill-green-500! animate-ping!">
-          <animateMotion dur={`${timeTaken}s`} repeatCount="indefinite" path={edgePath} calcMode="linear"/>
+        <circle r="10"  className="stroke-green-500! fill-green-500! animate-ping!">
+          <animateMotion 
+          dur={`${totalDur}s`} 
+          repeatCount="indefinite" 
+          path={edgePath} 
+          calcMode="linear"
+          keyTimes={`0; ${pauseRatio}; 1`}
+          keyPoints="0; 1; 1"          
+          />
+          <animate
+              attributeName="opacity"
+              dur={`${totalDur}s`}
+              repeatCount="indefinite"
+              keyTimes={`0; ${fadeInRatio}; ${fadeStartRatio}; ${moveRatio}; 1`}
+              values="0; 1; 1; 0; 0"
+            />
         </circle>
 
       </>
