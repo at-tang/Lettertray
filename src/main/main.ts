@@ -62,14 +62,14 @@ export const createHistoryEntries =  (entries: HistoryEntry[]) => {
     }
 }
 
-export const getHistoryEntries = (limit: number, offset: number) => {
-  const stmt = db.prepare('SELECT * FROM history_entries ORDER BY time DESC LIMIT ? OFFSET ?');
-  const result = stmt.all(limit, offset)
+export const getHistoryEntries = (query: string = "", limit: number, offset: number) => {
+  const stmt = db.prepare('SELECT * FROM history_entries WHERE file_name LIKE ? ORDER BY time DESC LIMIT ? OFFSET ?');
+  const result = stmt.all(`%${query}%`, limit, offset)
   return result;
 }
 
-ipcMain.handle('get-history-by-page', async (_event, limit: number, offset: number) => {
-  return getHistoryEntries(limit, offset);
+ipcMain.handle('get-history-by-page', async (_event, query: string, limit: number, offset: number) => {
+  return getHistoryEntries(query, limit, offset);
 })
 
 // Modifying Flowgraph :===========================================================
@@ -136,7 +136,7 @@ ipcMain.handle('set-to-background', async () => {
 // Handling External Windows :=======================================================
 
 ipcMain.handle('open-folder', async (_event, filePath: string) => {
-  await openFolderInNative(filePath);
+  return await openFolderInNative(filePath);
 })
 
 ipcMain.handle('dialog:openDirectory', async () => {
