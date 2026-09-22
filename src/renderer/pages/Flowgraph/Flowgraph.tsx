@@ -168,12 +168,14 @@ export default function Flowgraph() {
                 minZoom={0.4}
                 maxZoom={2}
 
+                snapToGrid={true}
+
                 
 
                 proOptions={proOptions}
                 >
                     
-                    <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border-2! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
+                    <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
                     <Background className=" from-surface-container! to-surface-dim! bg-radial!" />
 
                     <Panel position="top-left">

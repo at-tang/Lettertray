@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 export default function CircleAnimation(
     {sourceX, sourceY, targetX, targetY, edgePath}:
     {
@@ -11,8 +13,9 @@ export default function CircleAnimation(
 
       // Circle Animation Configuration
 
-    const circleSpeed = 125; // The speed at which the circle moves across the path (the more the faster)
-    const delay = 1; // How many seconds between animation cycles
+    const circleSpeed = 100; // The speed at which the circle moves across the path (the more the faster)
+    const delay = 0.5; // How many seconds between animation cycles
+
 
     const dy = Math.abs(sourceY - targetY)
     const dx = Math.abs(sourceX - targetX)

@@ -53,7 +53,7 @@ export function CustomEdge(
 
   
 
-  const { dragging, setOldDir, setNewDir, setEditing, setAddPopup, setEditTemplate } = useContext(FlowgraphContext);
+  const { connecting, dragging, setOldDir, setNewDir, setEditing, setAddPopup, setEditTemplate } = useContext(FlowgraphContext);
   const [expand, setExpand] = useState(false);
 
 
@@ -65,7 +65,7 @@ export function CustomEdge(
       <BaseEdge id={id} path={edgePath} className={!data.value.automationActive ? " stroke-green-900! " : " stroke-green-500! " + " stroke-6! bg-green-500!"} markerEnd={markerEnd}/>
 
       {
-      (data.value.automationActive && !dragging ) && 
+      (data.value.automationActive && !dragging && !connecting ) && 
       <CircleAnimation 
       sourceX={sourceX}
       sourceY={sourceY}
@@ -77,7 +77,7 @@ export function CustomEdge(
 
       <EdgeLabelRenderer>
         <span 
-        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-surface-container-h border-outline-b border-2 px-12 py-3 rounded-full text-on-surface flex flex-col items-center gap-4 text-lg shadow-lg/50 "}
+        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-green-600 border-green-500 border-3 px-12 py-3 rounded-full text-on-surface flex flex-col items-center gap-4 text-lg z-50 "}
         
         style={{position: 'absolute', transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`, pointerEvents: 'all',}}
         >
@@ -86,7 +86,7 @@ export function CustomEdge(
         <img onClick={() => {setExpand((prev) => {return !prev})}}src={arrowImg}  className={"w-5 h-8 hover:cursor-pointer hover:scale-120 transition " + (expand ? " rotate-0 " : " -rotate-90 ")}/>
         { !expand &&
         <>
-          <p className="text-xl">{(data.value.data.length === 1 ? `${data.value.data.at(0)?.type}: \"${data.value.data.at(0).query}\"` : `${data.value.data.length} Rules`)}</p>
+          <p className="text-xl text-center">{(data.value.data.length === 1 ? `${data.value.data.at(0)?.type}: \"${data.value.data.at(0).query}\"` : `${data.value.data.length} Rules`)}</p>
           <SetAutomationActive rule={data.value} id={id}/>
         </>
         }

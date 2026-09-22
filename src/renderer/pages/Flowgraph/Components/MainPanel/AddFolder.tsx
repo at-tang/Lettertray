@@ -20,11 +20,26 @@ export default function AddFolder() {
 
             const newId: number = await window.electron.generateId();
 
+            // Done so that new nodes added do not cover old nodes
+            let x = 0; let y = 0;
+            let overlapping = true;
+            while (overlapping) {
+                overlapping = false;
+                for (const node of nodes) {
+                    if (node.position.x === x && node.position.y === y) {
+                        x += 50;
+                        y += 50;
+                        overlapping = true;
+                        break;
+                    }
+                }
+            }
+
 
 
             setNodes((nodes) => [...nodes, {
                 id: newId.toString(),
-                position: {x: 0, y: 0},
+                position: {x: x, y: y},
                 data: {value: originPath, label: folderName},
                 type: "customNode"
             }]);

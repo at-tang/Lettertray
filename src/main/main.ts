@@ -49,10 +49,8 @@ function initDatabase() {
     time INTEGER NOT NULL,
     complete BOOLEAN NOT NULL
     );
-    `)
-  
+    `) 
 }
-
 
 export const createHistoryEntries =  (entries: HistoryEntry[]) => {
     const stmt = db.prepare('INSERT INTO history_entries (origin_dir, new_dir, file_name, time) VALUES (?, ?, ?, ?)');

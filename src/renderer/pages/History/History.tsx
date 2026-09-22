@@ -3,13 +3,14 @@ import HistoryEntry from "./Components/HistoryEntry";
 import { useVisibility } from "./Hooks/useVisibiity";
 
 export default function History() {
-    const LIMIT = 10;
+    const LIMIT = 20;
     const [offset, setOffset] = useState(0);
     const [historyList, setHistoryList] = useState([]);
     const [query, setQuery] = useState("");
 
     const loaderRef = useRef(null);
     const loaderVisible = useVisibility(loaderRef);
+    const listRef = useRef(null);
 
     const getHistoryByPage = async () => {
         const result = await window.electron.getHistoryByPage(query, LIMIT, offset)
@@ -25,12 +26,15 @@ export default function History() {
         console.log(result)
         setHistoryList(result);
         setOffset((prev) => {return LIMIT});
+        listRef.current.scrollTop = 0;
     }
 
-    useEffect(() => { // When the user reaches the bottom of the list, load more entries
+    // When the user reaches the bottom of the list, load more entries
+    useEffect(() => {
         if (loaderVisible) getHistoryByPage();
     }, [loaderVisible])
 
+    // When the user uses the search bar, reset what results are shown
     useEffect(() => {
         changeQuery();
     }, [query])
@@ -39,7 +43,7 @@ export default function History() {
     return (
         <>
             <div className="h-full w-full flex items-center justify-center bg-surface">
-                <main className="rounded-2xl bg-surface-container-low p-4 w-9/10 h-9/10 flex flex-col">
+                <main className="rounded-2xl bg-surface-container-low p-6 w-9/10 h-9/10 flex flex-col border border-outline-b shadow-lg/50">
                     <h1 className="text-5xl mb-2">History</h1>
                     <p className="mb-2">All file/directory moves automatically conducted by the program will be documented here. Note that only the latest 500 moves will be saved.</p>
 
@@ -50,7 +54,7 @@ export default function History() {
                     className="px-3 py-2 bg-on-surface text-surface-container rounded-full mb-4"/>
 
 
-                    <div className=" h-80 overflow-y-auto scrollbar-thumb-primary-container">
+                    <div ref={listRef} className=" h-80 overflow-y-auto scrollbar-thumb-primary-container">
 
                     { (historyList.length !== 0) &&
                         historyList.map((entry, i) => {

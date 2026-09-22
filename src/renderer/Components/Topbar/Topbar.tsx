@@ -32,7 +32,7 @@ export default function Topbar() {
 
               <p className="text-md ">Lettertray (Beta Version)</p>
 
-              <div className="flex-1 flex justify-end items-center px-3 gap-3">
+              <div className="flex-1 flex justify-end items-center px-3 gap-2">
                 <TopbarButton text="Editor" clickFunction={() => {navigate("/")}}/>
                 <TopbarButton text="History" clickFunction={() => {navigate("/history")}}/>
 

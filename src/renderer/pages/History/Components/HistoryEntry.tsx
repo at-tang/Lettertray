@@ -32,7 +32,10 @@ export default function HistoryEntry(
     return (
         <div className={` ${extraClasses} flex gap-3 py-2 px-3 items-center`}>
             <Popup value={errorPopup} setValue={setErrorPopup}>
-                <p>Could not find folder: "{newDir}"</p>
+                <p className="text-center mb-3">Could not find folder: "{newDir}"</p>
+                <div className="flex justify-center">
+                    <TextButton text="Go Back" clickFunction={() => {setErrorPopup(false)}}/>
+                </div>
             </Popup>
 
             <p><span className=" text-primary font-extrabold">"{fileName}" {" "}</span> was moved to <span className="flex gap-1 items-center"><img src={folderImg} alt="Folder Icon" className="w-4 h-4 invert"/>{newDirName}</span> -- {date.toDateString()}, {date.getHours()}:{date.getMinutes()}</p>
