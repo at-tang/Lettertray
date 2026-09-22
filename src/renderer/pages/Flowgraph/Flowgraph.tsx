@@ -94,9 +94,6 @@ export default function Flowgraph() {
             if (edges.some((edge) => {return edge.source === connection.source && edge.target === connection.target}) === true) {
                 let newEdges = [...edges]
                 console.log(newEdges.filter((edge) => {return edge.source === connection.source && edge.target === connection.target}));
-                console.log("Edge Source: " + connection.source)
-                console.log("Edge Target: " + connection.target)
-                console.log(edges)
                 return;
             } else {
 
@@ -176,16 +173,13 @@ export default function Flowgraph() {
                 proOptions={proOptions}
                 >
                     
-                    <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border-4! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
-                    <Background className="bg-surface!" />
+                    <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border-2! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
+                    <Background className=" from-surface-container! to-surface-dim! bg-radial!" />
 
                     <Panel position="top-left">
                         <TopLeftPanel nodes={nodes} setNodes={setNodes}/>
                     </Panel>
 
-                    <Panel position="bottom-right">
-                        <div className="p-4 bg-blue-500"/>
-                    </Panel>
 
                     <MiniMap nodeColor="#2c91ff" color="#2c91ff" className="bg-surface! ">
 

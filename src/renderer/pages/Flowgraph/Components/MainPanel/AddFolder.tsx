@@ -37,7 +37,7 @@ export default function AddFolder() {
     }
     return (
         <>
-            <TextButton color="bg-green-600" wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
+            <TextButton wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
         </>
 
     )

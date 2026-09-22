@@ -13,6 +13,7 @@ import fs from 'fs/promises';
 import { app, BrowserWindow, shell, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import Database from 'better-sqlite3';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import type { AutomationRequest, Rule, SavedFlowgraph } from './api/types';
@@ -27,12 +28,49 @@ import { clearFlowgraph } from './ipcMainhandleFunctions/flowgraph/clearFlowgrap
 import { saveFlowgraph } from './ipcMainhandleFunctions/flowgraph/saveFlowgraph';
 import { getFlowgraph } from './ipcMainhandleFunctions/flowgraph/getFlowgraph';
 import { handleNodeChangeData } from './ipcMainhandleFunctions/flowgraph/handleNodeChangeData';
-import { createTrayMenu } from './ipcMainhandleFunctions/tray/TrayMenu';
+import { HistoryEntry } from './classes/History';
 
 // For watching folders and automatically filtering
 let watcher: { add: (paths: string | string[]) => unknown } | null = null;
 let tray: Tray | null = null;
+let db: Database.Database | null = null;
 
+// SQL Database for tracking history
+function initDatabase() {
+  const dbPath = path.join(app.getPath('userData'), 'database.db');
+  db = require('better-sqlite3')(dbPath);
+  db.pragma('journal_mode = WAL');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS history_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    origin_dir TEXT NOT NULL,
+    new_dir TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    time INTEGER NOT NULL,
+    complete BOOLEAN NOT NULL
+    );
+    `)
+  
+}
+
+
+export const createHistoryEntries =  (entries: HistoryEntry[]) => {
+    const stmt = db.prepare('INSERT INTO history_entries (origin_dir, new_dir, file_name, time) VALUES (?, ?, ?, ?)');
+
+    for (const entry of entries) {
+        stmt.run(entry.originDir, entry.newDir, entry.fileName, entry.time)
+    }
+}
+
+export const getHistoryEntries = (limit: number, offset: number) => {
+  const stmt = db.prepare('SELECT * FROM history_entries ORDER BY time DESC LIMIT ? OFFSET ?');
+  const result = stmt.all(limit, offset)
+  return result;
+}
+
+ipcMain.handle('get-history-by-page', async (_event, limit: number, offset: number) => {
+  return getHistoryEntries(limit, offset);
+})
 
 // Modifying Flowgraph :===========================================================
 
@@ -317,7 +355,12 @@ app.name = "Lettertray";
 app
   .whenReady()
   .then(() => {
+
+    initDatabase();
+
     startWatching().catch(console.error); // Watches files
+
+    
 
     // App Icon :==============================================================
 

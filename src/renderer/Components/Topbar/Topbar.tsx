@@ -1,4 +1,9 @@
+import { useNavigate } from "react-router-dom";
+import TopbarButton from "./TopbarButton";
+
 export default function Topbar() {
+
+  const navigate = useNavigate();
 
     return (
         <header className="w-full bg-surface-container-h flex items-center justify-center border-b-outline-b border-b-3 py-1 rounded-xl" style={{"appRegion": "drag"}}>
@@ -27,7 +32,9 @@ export default function Topbar() {
 
               <p className="text-md ">Lettertray (Beta Version)</p>
 
-              <div className="flex-1">
+              <div className="flex-1 flex justify-end items-center px-3 gap-3">
+                <TopbarButton text="Editor" clickFunction={() => {navigate("/")}}/>
+                <TopbarButton text="History" clickFunction={() => {navigate("/history")}}/>
 
               </div>
               

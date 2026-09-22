@@ -19,8 +19,13 @@
 }
 
 @theme {
-    --color-surface: #111318;
+    --color-surface: #10141a;
+    --color-surface-dim: #10141a;
+
+    --color-surface-container-lowest: #0b0e15;
+    --color-surface-container-low: #181c22;
     --color-surface-container: #1d2024;
+    --color-surface-container-high: #262a31;
     --color-surface-container-h: #33343a;
     --color-on-surface: #e2e2e9;
 

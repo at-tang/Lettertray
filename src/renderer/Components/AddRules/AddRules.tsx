@@ -153,7 +153,7 @@ export default function AddRules(
     return (
 
         <>
-        <h1 className="text-center text-3xl mb-1">Create Rule</h1>
+        <h1 className="text-center text-3xl mb-1">{editing ? "Edit " : "Create "} Rule</h1>
         <hr className="mb-4"/>
         {keywordList.map((keyword, i) => {
             return (

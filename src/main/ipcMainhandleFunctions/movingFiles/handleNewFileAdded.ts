@@ -1,6 +1,8 @@
 import path from "node:path";
 import { Rule } from "../../api/types";
 import fs from 'fs/promises';
+import { createHistoryEntries } from "../../main";
+import { HistoryEntry } from "../../classes/History";
 
 export async function handleNewFileAdded(filePath: string, rules: Rule[] = [], retries: number = 5, delay: number = 300)  {
 
@@ -23,7 +25,9 @@ export async function handleNewFileAdded(filePath: string, rules: Rule[] = [], r
               // Attempt to move the file
               try {
                 await fs.rename(filePath, path.join(rule.newDirectory, fileName))
-                console.log("Successful move of \'" + fileName + "\' to " + rule.newDirectory + " at " + new Date().toLocaleTimeString())
+                console.log("Successful move of \'" + fileName + "\' to " + rule.newDirectory + " at " + new Date().toLocaleTimeString());
+                // Write this to the history
+                createHistoryEntries([new HistoryEntry(rule.originDirectory, rule.newDirectory, fileName, true)])
                 return
               } 
               
@@ -34,6 +38,7 @@ export async function handleNewFileAdded(filePath: string, rules: Rule[] = [], r
                   try {
                     await fs.copyFile(filePath, path.join(rule.newDirectory, fileName))
                     await fs.unlink(filePath)
+                    createHistoryEntries([new HistoryEntry(rule.originDirectory, rule.newDirectory, fileName, true)])
                   }
                   catch (copyFileErr) {
                     console.error(copyFileErr)

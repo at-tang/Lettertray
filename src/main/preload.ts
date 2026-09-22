@@ -8,6 +8,10 @@ export type Channels = 'ipc-example';
 
 const electronHandler = {
 
+  getHistoryByPage(limit: number, offset: number) {
+    return ipcRenderer.invoke('get-history-by-page', limit, offset)
+  },
+
 
   loadFlowgraph() {
     return ipcRenderer.invoke('get-flowgraph')

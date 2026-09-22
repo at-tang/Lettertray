@@ -18,7 +18,7 @@ export default function DeleteEdgeButton({id}: {id: String}) {
 
     return (
         <>
-            <TextButton color=" bg-red-400 " clickFunction={async () => {await handleDelete()}} text="Delete"/>
+            <TextButton color=" bg-red-400 font-bold " clickFunction={async () => {await handleDelete()}} text="Delete"/>
         </>
     )
 }

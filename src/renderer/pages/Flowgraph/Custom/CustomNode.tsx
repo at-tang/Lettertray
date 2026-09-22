@@ -61,7 +61,7 @@ export default function CustomNode({id, data}) {
                 setShowFull(false)
                 saveNodes(getNodes(), getEdges(), setEdges)
             }}
-            className="bg-surface-container-h border-outline-b border-4 text-on-surface px-10 py-3 rounded-2xl hover:cursor-move">
+            className="bg-surface-container-h border-outline-b border-2 text-on-surface px-10 py-3 rounded-2xl hover:cursor-move shadow-lg/50">
                 <div className="flex gap-3 items-center">
                     <button className="hover:cursor-pointer hover:scale-115 transition ease-in-out w-9 h-9" onClick={async () => {await window.electron.openFolder(data.value)}}>
                         <img src={folderImage} alt="Open Folder Icon" width={24} height={24} className=" invert w-9 h-9"/>
@@ -83,6 +83,7 @@ export default function CustomNode({id, data}) {
                 
 
                 <Handle type="target" position={Position.Left} isConnectableStart={false}  className={"w-9! h-9! z-20! bg-primary-container! border-0! hover:brightness-125 transition! flex! items-center! justify-center!"} >
+                    {/* Interior div generates the pinging effect that occurs when you start dragging a new edge */}
                     <div className={"z-10! w-8! h-8! bg-primary-container! rounded-full! border-0! hover:brightness-125! transition! " + (connecting ? " animate-ping! origin-center!  -absolute!  " : " ")}/>
 
                 </Handle>
