@@ -36,13 +36,13 @@ export default function Flowgraph() {
     }, [editTemplate])
     
 
+    const saveFlowgraph = async () => {
+        const flowgraph = {nodes: nodes, edges: edges
+        }
+        await window.electron.saveFlowgraph(flowgraph); 
+    }
 
     useEffect(() => {
-        const saveFlowgraph = async () => {
-            const flowgraph = {nodes: nodes, edges: edges
-            }
-            await window.electron.saveFlowgraph(flowgraph); 
-        }
         if (initialLoadDone) saveFlowgraph(); // Done to make sure saved flowgraph is not overwritten
         console.log(edges)     
     }, [edges])
@@ -155,6 +155,8 @@ export default function Flowgraph() {
 
                 onConnectStart={() => setConnecting(true)}
                 onConnectEnd={() => setConnecting(false)}
+
+                onEdgesDelete={() => {saveFlowgraph()}}
 
    
 
