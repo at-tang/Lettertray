@@ -23,10 +23,10 @@ export default function ConflictEntry({conflict, index, deleteCallback}: {confli
 
     // <TextButton text="Delete" clickFunction={() => {handleConflictDeletion(conflict.id)}}/>
     return (
-        <div className="w-full bg-surface-container-h">
-            <p className="text-center mb-6"><b className="text-red-400">Conflicted File: </b>{conflict.origin_directory}</p>
+        <div className="w-full ">
+            <p className="text-center mb-3"><b className="text-red-400">Conflicted File: </b>{conflict.origin_directory}</p>
             
-            <div className="flex flex-col gap-3 w-3xl items-center justify-center bg-surface-container-low w-full">
+            <div className="flex flex-col gap-3  items-center justify-center w-full">
                 {
                     conflictingRules.map((rule) => {
                         return (

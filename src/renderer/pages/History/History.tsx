@@ -54,7 +54,7 @@ export default function History() {
                     className="px-3 py-2 bg-on-surface text-surface-container rounded-full mb-4"/>
 
 
-                    <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto scrollbar-thumb-primary-container flex flex-col items-center justify-center w-full">
+                    <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto scrollbar-thumb-primary-container flex flex-col items-center justify-start w-full">
                
 
                     { (historyList.length !== 0) &&

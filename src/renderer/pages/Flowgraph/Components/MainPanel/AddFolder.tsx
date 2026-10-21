@@ -4,7 +4,7 @@ import SidebarButton from "./SidebarButton";
 import image from 'assets/appIcons/addFolderIcon.png'
 
 
-export default function AddFolder() {
+export default function AddFolder({isDefault = false}: {isDefault?: boolean}) {
 
     const {setNodes, getEdges, getNodes} = useReactFlow();
 
@@ -55,7 +55,12 @@ export default function AddFolder() {
     // <TextButton wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
     return (
         <>
-            <SidebarButton text="Add" image={image} callback={async () => {await handleAddClick()}}/>
+            {!isDefault && <SidebarButton text="Add" image={image} callback={async () => {await handleAddClick()}}/>}
+            {isDefault &&
+                        <button onClick={() => {handleAddClick()}} className="px-8 py-0.5 bg-white text-surface-container rounded-full hover:scale-102 hover:cursor-pointer hover:brightness-90 transition ease-in-out">
+                            Add a Folder
+                        </button>
+            }
             
         </>
 

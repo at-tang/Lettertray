@@ -10,6 +10,7 @@ import AddRulePopup from "./Components/AddRulePopup";
 import { CustomEdge } from "./Custom/CustomEdge";
 import CustomNode from "./Custom/CustomNode";
 import AddRules, { Keyword } from "../../Components/AddRules/AddRules";
+import AddFolder from "./Components/MainPanel/AddFolder";
 
 export const FlowgraphContext = createContext();
 export default function Flowgraph() {
@@ -202,9 +203,7 @@ export default function Flowgraph() {
 
                         <p className="mb-6">To begin, add two folders through the Add button and connect them together to form a sorting rule.</p>
 
-                        <button className="px-8 py-0.5 bg-white text-surface-container rounded-full hover:scale-102 hover:cursor-pointer hover:brightness-90 transition ease-in-out">
-                            Add a Folder
-                        </button>
+                        <AddFolder isDefault={true}/>
                         
                     </div>}
 
