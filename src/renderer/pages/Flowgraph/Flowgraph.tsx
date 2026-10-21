@@ -115,6 +115,12 @@ export default function Flowgraph() {
     )
     const proOptions = {hideAttribution: true}
 
+    /*
+                        <MiniMap nodeColor="#2c91ff" color="#2c91ff" className="bg-surface! ">
+
+                    </MiniMap>
+    */
+
 
 
     return (
@@ -157,6 +163,7 @@ export default function Flowgraph() {
                 onConnectEnd={() => setConnecting(false)}
 
                 onEdgesDelete={() => {saveFlowgraph()}}
+                onNodesDelete={() => {saveFlowgraph()}}
 
    
 
@@ -175,19 +182,34 @@ export default function Flowgraph() {
                 
 
                 proOptions={proOptions}
+                className="flex"
                 >
+
                     
-                    <Controls className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
+                    <Controls position="bottom-right"  className="stroke-on-surface [&_button]:bg-surface-container! [&_button]:border-outline-b! [&_button]:border! [&_button]:fill-outline-b! [&_button]:rounded-2xl! [&_button]:mb-2! [&_button]:h-12! [&_button]:w-12! [&_button]:hover:scale-103! [&_button]:transition! [&_button]:ease-in-out!" />
                     <Background className=" from-surface-container! to-surface-dim! bg-radial!" />
 
                     <Panel position="top-left">
                         <TopLeftPanel nodes={nodes} setNodes={setNodes}/>
                     </Panel>
 
+          
+                    {nodes.length == 0 && <div className="text-white px-8 py-4 bg-primary-container absolute inset-0 m-auto w-128 h-64 rounded-2xl text-center flex flex-col items-center justify-center z-5">
+                        <header className="flex items-center justify-center mb-3">
+                            <h1 className="text-2xl">Welcome to Lettertray!</h1>
 
-                    <MiniMap nodeColor="#2c91ff" color="#2c91ff" className="bg-surface! ">
+                        </header>
 
-                    </MiniMap>
+                        <p className="mb-6">To begin, add two folders through the Add button and connect them together to form a sorting rule.</p>
+
+                        <button className="px-8 py-0.5 bg-white text-surface-container rounded-full hover:scale-102 hover:cursor-pointer hover:brightness-90 transition ease-in-out">
+                            Add a Folder
+                        </button>
+                        
+                    </div>}
+
+
+
 
                 </ReactFlow>
 

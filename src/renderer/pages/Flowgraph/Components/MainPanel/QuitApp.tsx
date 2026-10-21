@@ -2,6 +2,9 @@ import { useState } from "react";
 import TextButton from "../../../../Components/TextButton";
 import Popup from "../../../../Components/Popup";
 
+import quitIcon from "assets/appIcons/exitIcon.png"
+import SidebarButton from "./SidebarButton";
+
 export default function QuitApp() {
 
     const [popup, setPopup] = useState(false);
@@ -9,6 +12,8 @@ export default function QuitApp() {
     const handleQuit = async () => {
         await window.electron.closeApp();
     }
+
+    // <TextButton text="Quit App" wFull={true} clickFunction={() => {setPopup(true)}}/>
 
     return (
         <>
@@ -21,7 +26,8 @@ export default function QuitApp() {
                 </section>
 
             </Popup>
-            <TextButton text="Quit App" wFull={true} clickFunction={() => {setPopup(true)}}/>
+            
+            <SidebarButton text="Quit" image={quitIcon} callback={() => {setPopup(true)}}/>
         </>
     )
 }

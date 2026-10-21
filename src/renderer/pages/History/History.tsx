@@ -42,8 +42,8 @@ export default function History() {
 
     return (
         <>
-            <div className="h-full w-full flex items-center justify-center bg-surface">
-                <main className="rounded-2xl bg-surface-container-low p-6 w-9/10 h-9/10 flex flex-col border border-outline-b shadow-lg/50">
+            <div className="h-full min-h-0 w-full flex items-center justify-center bg-surface">
+                <main className="rounded-2xl bg-surface-container-low p-6 w-9/10 h-9/10 min-h-0 flex flex-col border border-outline-b shadow-lg/50">
                     <h1 className="text-5xl mb-2">History</h1>
                     <p className="mb-2">All file/directory moves automatically conducted by the program will be documented here. Note that only the latest 500 moves will be saved.</p>
 
@@ -54,12 +54,13 @@ export default function History() {
                     className="px-3 py-2 bg-on-surface text-surface-container rounded-full mb-4"/>
 
 
-                    <div ref={listRef} className=" h-80 overflow-y-auto scrollbar-thumb-primary-container">
+                    <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto scrollbar-thumb-primary-container flex flex-col items-center justify-center w-full">
+               
 
                     { (historyList.length !== 0) &&
                         historyList.map((entry, i) => {
                             return (
-                                <div key={i}>
+                                <div key={i} className="w-full">
                                     <HistoryEntry originDir={entry.origin_dir} newDir={entry.new_dir} fileName={entry.file_name} time={entry.time} extraClasses={`${(i % 2 == 0 ? " bg-surface-container " : " bg-surface-container-h ")}`}/>
                                 </div>
                             )

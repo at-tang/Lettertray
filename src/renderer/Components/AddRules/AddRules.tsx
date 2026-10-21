@@ -11,12 +11,14 @@ export class Keyword {
     query: string;
     type: string;
     id: number;
+    foldersAllowed: boolean;
 
-    constructor(regex: string = "", query: string = "", type: string = "", id: number = 0) {
+    constructor(regex: string = "", query: string = "", type: string = "", id: number = 0, foldersAllowed: boolean = true) {
         this.regex = regex;
         this.query = query;
         this.type = type;
         this.id = id;
+        this.foldersAllowed = foldersAllowed;
     }
 }
 
@@ -74,6 +76,9 @@ export default function AddRules(
         let newId: string = await window.electron.generateId();
         let newIdNumber: number = (Number) (newId);
 
+        let newId2: string = await window.electron.generateId();
+        let newIdNumber2: number = (Number) (newId);
+
         // Create the combined Regex
         let newRegex = "";
         let newView = "";
@@ -128,7 +133,7 @@ export default function AddRules(
         }    
 
         const newEdge: Edge = {
-            id: `__${connection.source}~${connection.target}`,
+            id: `${newIdNumber2}`,
             source: connection.source,
             target: connection.target,
             sourceHandle: connection.sourceHandle,

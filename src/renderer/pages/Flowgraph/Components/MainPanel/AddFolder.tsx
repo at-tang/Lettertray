@@ -1,5 +1,7 @@
 import { useReactFlow } from "@xyflow/react";
 import TextButton from "../../../../Components/TextButton";
+import SidebarButton from "./SidebarButton";
+import image from 'assets/appIcons/addFolderIcon.png'
 
 
 export default function AddFolder() {
@@ -50,9 +52,11 @@ export default function AddFolder() {
         
 
     }
+    // <TextButton wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
     return (
         <>
-            <TextButton wFull={true} clickFunction={ async () => {await handleAddClick()}} text="Add Folder"/>
+            <SidebarButton text="Add" image={image} callback={async () => {await handleAddClick()}}/>
+            
         </>
 
     )

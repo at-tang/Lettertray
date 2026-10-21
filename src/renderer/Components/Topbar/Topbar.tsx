@@ -6,7 +6,7 @@ export default function Topbar() {
   const navigate = useNavigate();
 
     return (
-        <header className="w-full bg-surface-container-h flex items-center justify-center border-b-outline-b border-b-3 py-1 rounded-xl" style={{"appRegion": "drag"}}>
+        <header className="w-full bg-surface-container-h flex items-center justify-center py-1 border-b-4 border-b-surface-container-high" style={{"appRegion": "drag"}}>
 
 
               <div className="flex-1 flex items-center gap-3 pl-3">
@@ -34,7 +34,9 @@ export default function Topbar() {
 
               <div className="flex-1 flex justify-end items-center px-3 gap-2">
                 <TopbarButton text="Editor" clickFunction={() => {navigate("/")}}/>
+                <TopbarButton text="Conflicts" clickFunction={() => {navigate("/conflict")}}/>
                 <TopbarButton text="History" clickFunction={() => {navigate("/history")}}/>
+                
 
               </div>
               

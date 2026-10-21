@@ -20,7 +20,7 @@ import type { AutomationRequest, Rule, SavedFlowgraph } from './api/types';
 import { Edge } from '@xyflow/react';
 import { mainCreateNewRule } from './ipcMainhandleFunctions/rule/createNewRule';
 import { generateId } from './ipcMainhandleFunctions/ruleId/generateId';
-import { handleNewFileAdded } from './ipcMainhandleFunctions/movingFiles/handleNewFileAdded';
+import { handleNewFileAdded, moveFile } from './ipcMainhandleFunctions/movingFiles/handleNewFileAdded';
 import { FileQueue, MoveFilePayload } from './ipcMainhandleFunctions/movingFiles/FileQueue';
 import { openFolderInNative } from './ipcMainhandleFunctions/openExternalWindows/openFolder';
 import { submitDirectory } from './ipcMainhandleFunctions/openExternalWindows/submitDirectory';
@@ -29,11 +29,14 @@ import { saveFlowgraph } from './ipcMainhandleFunctions/flowgraph/saveFlowgraph'
 import { getFlowgraph } from './ipcMainhandleFunctions/flowgraph/getFlowgraph';
 import { handleNodeChangeData } from './ipcMainhandleFunctions/flowgraph/handleNodeChangeData';
 import { HistoryEntry } from './classes/History';
+import { checkIfPathExists } from './ipcMainhandleFunctions/checkFiles/checkIfPathExists';
 
 // For watching folders and automatically filtering
 let watcher: { add: (paths: string | string[]) => unknown } | null = null;
 let tray: Tray | null = null;
 let db: Database.Database | null = null;
+
+export const HISTORY_ENTRY_LIMIT = 500; // Total number of history entries
 
 // SQL Database for tracking history
 function initDatabase() {
@@ -50,6 +53,80 @@ function initDatabase() {
     complete BOOLEAN NOT NULL
     );
     `) 
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS conflicts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    origin_directory TEXT NOT NULL UNIQUE,
+    new_directories JSON NOT NULL
+
+    )`)
+}
+
+// Conflict
+
+export const deleteInvalidConflicts = () => {
+  /*
+  Delete all conflicts where the target file no longer exists
+  */
+  const getAllConflicts = db.prepare('SELECT * FROM conflicts') 
+  const allConflicts = getAllConflicts.all();
+
+  const deleteStmt = db.prepare('DELETE FROM conflicts WHERE id = ?')
+  for (const conflict of allConflicts) {
+    if (!checkIfPathExists(conflict.origin_directory)) {
+      deleteStmt.run(conflict.id);
+      console.log("Deleted conflict for " + conflict.origin_directory)
+    } 
+  }
+  
+}
+
+export const deleteAllConflicts = () => {
+  /*
+  Delete all conflicts within the conflicts database
+  Generally done when the user presses the Clear button
+  */
+  const deleteStmt = db.prepare('TRUNCATE TABLE conflicts')
+  deleteStmt.run();
+}
+
+export const getConflicts = (query: string = "", limit: number, offset: number) => {
+  deleteInvalidConflicts();
+  const stmt = db.prepare('SELECT * FROM conflicts WHERE origin_directory LIKE ? LIMIT ? OFFSET ?');
+  const result = stmt.all(`%${query}%`, limit, offset)
+
+
+
+
+  return result;
+}
+
+export const createConflict = (originDirectory: string, newDirectories: Rule[]) => {
+  const new_directories = JSON.stringify({paths: newDirectories});
+
+  const duplicates = db.prepare('SELECT COUNT(*) AS count FROM conflicts WHERE origin_directory = ?');
+  const total = duplicates.get(originDirectory).count;
+  console.log("Duplicates found: " + total)
+
+  if (total > 0) {
+    const updateOldConflict = db.prepare('UPDATE conflicts SET new_directories = ? WHERE origin_directory = ?')
+    updateOldConflict.run(new_directories, `${originDirectory}`);
+    console.log("Updated conflict for " + originDirectory);
+    return;
+  }
+
+  console.log("createConflict called!");
+  const stmt = db.prepare('INSERT INTO conflicts (origin_directory, new_directories) VALUES (?, ?)');
+  stmt.run(originDirectory, JSON.stringify({paths: newDirectories}));
+  console.log("Created conflict!");
+}
+
+export const deleteConflictById = (id: number) => {
+  const deleteStmt = db.prepare('DELETE FROM conflicts WHERE id = ?')
+  deleteStmt.run(id);
+  console.log("Deletion of conflict with id: " + id + " complete!");
+  
 }
 
 export const createHistoryEntries =  (entries: HistoryEntry[]) => {
@@ -60,14 +137,42 @@ export const createHistoryEntries =  (entries: HistoryEntry[]) => {
     }
 }
 
+export const countAllEntries = () => {
+  return db.prepare('SELECT COUNT(*) AS countNumEntries FROM history_entries').pluck().get();
+}
+
+
+export const deleteAllEntriesOverLimit = () => {
+  console.log("deleteAllEntriesOverLimit() called!")
+    const countNumEntries = db.prepare('SELECT COUNT(*) AS countNumEntries FROM history_entries').pluck().get();
+    const totalToDelete = Math.max(0, countNumEntries - HISTORY_ENTRY_LIMIT); // max is mainly to prevent errors in SQL
+
+    if (totalToDelete > 0) { // Delete all excess entries from limit
+      const removeOldestEntries = db.prepare('DELETE FROM history_entries WHERE id IN (SELECT id FROM history_entries ORDER BY time ASC LIMIT ?)')
+      removeOldestEntries.run(totalToDelete);
+      console.log("Deleted " + totalToDelete + " entries!");
+    }
+
+}
+
+
 export const getHistoryEntries = (query: string = "", limit: number, offset: number) => {
   const stmt = db.prepare('SELECT * FROM history_entries WHERE file_name LIKE ? ORDER BY time DESC LIMIT ? OFFSET ?');
   const result = stmt.all(`%${query}%`, limit, offset)
   return result;
 }
 
+
 ipcMain.handle('get-history-by-page', async (_event, query: string, limit: number, offset: number) => {
   return getHistoryEntries(query, limit, offset);
+})
+
+ipcMain.handle('get-conflicts-by-page', async (_event, query: string, limit: number, offset: number) => {
+  return getConflicts(query, limit, offset);
+})
+
+ipcMain.handle('delete-conflict-by-id', (_event, id: number) => {
+  deleteConflictById(id);
 })
 
 // Modifying Flowgraph :===========================================================
@@ -151,11 +256,28 @@ ipcMain.handle('open-external-window', async (_event, url: string) => {
 })
 
 
+// File Queue Functions
+
+ipcMain.handle('move-file', async (_event, filePath: string, rules: Rule[]) => {
+  /*
+  Automatically moves a single file by adding it to the File Queue
+  */
+  let mfp: MoveFilePayload = {filepath: filePath, rules: rules}
+  fileQueue.push(mfp)
+}) 
+
+ipcMain.handle('move-single-file', async (_event, filePath: string, rule: Rule) => {
+  await moveFile(filePath, rule);
+})
+
+
 // Watching :====================================
 
 // Establishes the fileQueue where files will be queued to see if they need to be moved
 // See the ipcMainHandleFunctions/movingFiles/FileQueue.ts for more info
 const fileQueue = new FileQueue();
+
+
 
 
 const startWatching = async () => {
@@ -177,7 +299,12 @@ const startWatching = async () => {
   // Compile a list of all the directories where files will be sorted FROM
   let watchedFolders: string[] = [];
   if (flowgraph.edges.length > 0) {
-    watchedFolders = flowgraph.edges.map((edge) => {return edge.data.value.originDirectory})
+    for (let i = 0; i < flowgraph.edges.length; i++) {
+      if (flowgraph.edges.at(i)?.data.value.originDirectory !== undefined && flowgraph.edges.at(i).data.value.originDirectory !== null) {
+        if (flowgraph.edges.length !== 0) watchedFolders.push(flowgraph.edges.at(i).data.value.originDirectory)
+      }
+    }
+    //watchedFolders = flowgraph.edges.map((edge) => {return edge.data.value.originDirectory})
     
   }
 

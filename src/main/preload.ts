@@ -3,6 +3,7 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { AutomationRequest, Rule } from './api/types';
 import { Edge } from '@xyflow/react';
+import { deleteConflictById } from './main';
 
 export type Channels = 'ipc-example';
 
@@ -10,6 +11,14 @@ const electronHandler = {
 
   getHistoryByPage(query: string, limit: number, offset: number) {
     return ipcRenderer.invoke('get-history-by-page', query, limit, offset)
+  },
+
+  getConflictsByPage(query: string, limit: number, offset: number) {
+    return ipcRenderer.invoke('get-conflicts-by-page', query, limit, offset)
+  },
+
+  deleteConflictById(id: number) {
+    return ipcRenderer.invoke('delete-conflict-by-id', id)
   },
 
 
@@ -68,6 +77,14 @@ const electronHandler = {
 
   openExternalUrl(url: string) {
     return ipcRenderer.invoke('open-external-window', url)
+  },
+
+  moveFile(filePath: string, rules: Rule[]) {
+    return ipcRenderer.invoke('move-file', filePath, rules)
+  },
+
+  moveSingleFile(filePath: string, rule: Rule) {
+    return ipcRenderer.invoke('move-single-file', filePath, rule)
   },
 
 

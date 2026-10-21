@@ -1,4 +1,5 @@
 import { Rule } from "../../api/types";
+import { deleteAllEntriesOverLimit, HISTORY_ENTRY_LIMIT } from "../../main";
 import { handleNewFileAdded } from "./handleNewFileAdded";
 
 export interface MoveFilePayload {
@@ -22,10 +23,13 @@ export class FileQueue {
   */
   queue: MoveFilePayload[]
   processing: boolean
+  totalMoves: number
 
   constructor() {
     this.queue = [];
     this.processing = false;
+    this.totalMoves = 0;
+    
   }
 
   push(mfp: MoveFilePayload) {
@@ -34,7 +38,17 @@ export class FileQueue {
   }
 
   async processNext() {
-    if (this.processing || this.queue.length === 0) return;
+
+    // If queue is currently processing a file
+    if (this.processing) {
+      return;
+    }
+
+    // If queue is empty. Mainly split from processing check for future functionality
+    if (this.queue.length === 0) {
+      if (this.totalMoves !== 0) deleteAllEntriesOverLimit();
+      return;
+    }
 
     this.processing = true;
     const nextMove = this.queue.shift();
@@ -44,8 +58,15 @@ export class FileQueue {
     }
     catch (err) {
       console.error(err)
+      this.queue.push(mfp) // If file move doesn't work. place it on the back of the queue 
     }
     finally {
+      this.totalMoves++;
+      if (this.totalMoves % HISTORY_ENTRY_LIMIT === 0 && this.totalMoves !== 0) {
+        deleteAllEntriesOverLimit();
+      }
+
+
       this.processing = false;
       setImmediate(() => this.processNext())
     }

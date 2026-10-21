@@ -8,6 +8,7 @@ export default function DeleteNodeButton({id}: {id: string}) {
 
     const handleDelete = async () => {
         await reactFlow.setNodes(reactFlow.getNodes().filter((node: FlowNode) => {return node.id !== id }));
+        await reactFlow.setEdges(reactFlow.getEdges().filter((edge: Edge) => {return edge.source !== id && edge.target !== id}))
         await window.electron.saveFlowgraph(
             {nodes: reactFlow.getNodes().filter((node: FlowNode) => {return node.id !== id }), 
             

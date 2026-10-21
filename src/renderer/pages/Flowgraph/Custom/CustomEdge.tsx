@@ -77,7 +77,7 @@ export function CustomEdge(
 
       <EdgeLabelRenderer>
         <span 
-        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-green-600 border-green-500 border-3 px-12 py-3 rounded-full text-on-surface flex flex-col items-center gap-4 text-lg z-50 "}
+        className={(data.value.automationActive ? " brightness-100 " : " brightness-50 ") + "bg-green-600 border-green-500 border-3 px-8 py-2 rounded-full text-on-surface flex flex-col items-center gap-4 text-lg z-50 "}
         
         style={{position: 'absolute', transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`, pointerEvents: 'all',}}
         >
