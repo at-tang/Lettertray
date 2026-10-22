@@ -68,7 +68,7 @@ export default function App() {
           <div className="h-dvh w-dvw flex flex-col from-surface-container to-surface-dim z-90">
             <Topbar/>
 
-            <main className="flex-1 grow bg-primary-container w-full h-full flex items-center justify-center">
+            <main className="flex-1 grow bg-primary-container w-full flex items-center justify-center">
 
               <Flowgraph/>
             </main>

@@ -112,7 +112,7 @@ export default function Flowgraph() {
 
 
 
-        }, [nodes], 
+        }, [nodes, edges], 
     )
     const proOptions = {hideAttribution: true}
 

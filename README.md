@@ -1,6 +1,21 @@
+
+<img src=".github/assets/LettertrayBanner.jpg"/>
 <h1>Lettertray</h1>
 
-<p>An Electron JS application that automatically sorts through a user's files.</p>
+<p>Tech Stack: TypeScript, SQL, React.js, Electron.js, SQLite, React Flow, React Router</p>
+
+<p>An Electron JS application that automatically sorts through a user's files & directories based on user instruction. Users can create their own parameters through an interactive, animated flowchart interface.</p>
+
+<h2>Features</h2>
+    <ul>
+        <li>Fully interactive, animated flowchart interface with drag-and-drop mechanics</li>
+        <li>Autonomous file/directory sorting that accounts for newly-added files and old files alike</li>
+        <li>Maintains a history log of all file-relocation events via a native SQLite database, allowing users to track where their files go</li>
+        <li>Extensive error handling that accounts for deleted folders, conflicting rules, et cetera, for a seamless experience </li>
+    </ul>
+
+<h2>Preview Images</h2>
+    <img src=".github/assets/preview1.png"/>
 
 <h2> Checklist</h2>
 

@@ -3,16 +3,34 @@ import { Rule } from "../../api/types";
 import fs from 'fs/promises';
 import { createConflict, createHistoryEntries } from "../../main";
 import { HistoryEntry } from "../../classes/History";
+import { checkIfPathExists } from "../checkFiles/checkIfPathExists";
 
+export function determineNewName(filePath: string, rule: Rule): string {
+    // Check if file name exists. If so, create a new name for it
+    let originalName = path.basename(filePath)
+    let fileName = path.basename(filePath);
+    let isDuplicate: Boolean = true;
+    let i = 1;
+    while (isDuplicate) {
+      if (checkIfPathExists(path.join(rule.newDirectory, fileName))) {
+        i += 1;
+        fileName = `(${i})${originalName}`
+      } else {
+        isDuplicate = false;
+      }
+
+    }
+    return fileName;
+}
 export async function moveFile(filePath: string, rule: Rule, retries: number = 5, delay: number = 300) {
   /*
   The function that actually moves the file.
   */
     
     for (let attempts = 1; attempts <= retries; attempts++) {
-      const fileName = path.basename(filePath);
-      
-      const newFilePath = path.join(rule.newDirectory, fileName)
+
+    let fileName = determineNewName(filePath, rule)
+
 
     // Attempt to move the file
         try {

@@ -40,7 +40,7 @@ export default function HistoryEntry(
 
             <p><span className=" text-primary font-extrabold">"{fileName}" {" "}</span> was moved to <span className="flex gap-1 items-center"><img src={folderImg} alt="Folder Icon" className="w-4 h-4 invert"/>{newDirName}</span> -- {date.toDateString()}, {date.getHours()}:{date.getMinutes()}</p>
             <div className="flex-1"></div>
-            <TextButton text="Open File" clickFunction={() => {handleOpenFolder()}}/>
+            <TextButton text="Open Destination Folder" clickFunction={() => {handleOpenFolder()}}/>
             
 
 
